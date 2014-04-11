@@ -15,7 +15,7 @@ abstract class Simulation {
 
   def schedule(delay: Int = 0)(block: => Unit) {
     val item = WorkItem(currentTime + delay, () => block)
-    agenda += (item.time -> (item :: agenda.getOrElse(item.time, List())))
+    agenda += (item.time -> (agenda.getOrElse(item.time, List()) ++ List(item)))
   }
 
   protected def next() {

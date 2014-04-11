@@ -27,15 +27,21 @@ object CircuitSimulation extends BasicCircuitSimulation {
 object MainCircuits extends App {
   import eu.shiftforward.CircuitSimulation._
 
-  val input1, input2, cin, sum, carry, clk = new Wire
-  val probes = ("a", input1) :: ("b", input2) :: ("cin", cin) :: ("sum", sum) :: ("carry", carry) :: ("clock", clk) :: Nil
+  implicit val tracer = new ConsoleTracer
+  val input1, input2, cin, sum, carry, clk, clk3 = new Wire
+  val probes = ("a", input1) :: ("b", input2) :: ("cin", cin) :: ("sum", sum) :: ("carry", carry) :: ("clock", clk) :: ("clock 3", clk3) :: Nil
+
+  tracer.setHeader(probes.map(_._1))
 
   clock(clk)
+  clock(clk3, 3)
+
   fullAdder(input1, input2, cin, sum, carry)
+  run(probes, cycles = 10)
 
   input1 setSignal true
   run(probes, cycles = 10)
 
   input2 setSignal true
-  run(probes, printheader = false, cycles = 10)
+  run(probes, cycles = 10)
 }

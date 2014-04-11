@@ -66,28 +66,38 @@ abstract class BasicCircuitSimulation extends Simulation {
   def xor(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { _ ^ _ }
   def nand(a: Wire, b: Wire, output: Wire) = binaryLogicGate(a, b, output) { (x, y) => !(x && y) }
 
-  var lastValues = List[Boolean]()
-
-  def run(probes: List[(String, Wire)], printheader: Boolean = true, cycles: Int = 1) {
-    def prettyPrintSignal(h: Boolean, s: Boolean) = (h, s) match {
-      case (false, false) => "│  "
-      case (false, true)  => "└─┐"
-      case (true, true)   => "  │"
-      case (true, false)  => "┌─┘"
-    }
-
-    def getValues = probes.map(_._2.getSignal)
-
-    if (printheader) println("time\t" + probes.map(_._1).mkString("\t"))
-
+  def run(probes: List[(String, Wire)], cycles: Int = 1)(implicit tracer: Tracer = new ConsoleTracer) {
     val stopTime = currentTime + cycles
     while (hasNext && currentTime < stopTime) {
       next()
-      val currentValues = getValues
-      val signals = if (!lastValues.isEmpty) lastValues.zip(currentValues).map { case (h, s) => prettyPrintSignal(h, s) }
-                    else currentValues.map(s => prettyPrintSignal(s, s))
-      println(currentTime + "\t" + signals.mkString("\t"))
-      lastValues = currentValues
+      tracer.trace(currentTime, probes.map(_._2.getSignal))
     }
+  }
+}
+
+trait Tracer {
+  def setHeader(probes: List[String])
+  def trace(currentTime: Int, currentValues: List[Boolean])
+}
+
+class ConsoleTracer extends Tracer {
+  var lastValues = List[Boolean]()
+
+  def prettyPrintSignal(h: Boolean, s: Boolean) = (h, s) match {
+    case (false, false) => "│  "
+    case (false, true)  => "└─┐"
+    case (true, true)   => "  │"
+    case (true, false)  => "┌─┘"
+  }
+
+  def setHeader(probes: List[String]) {
+    println("time\t" + probes.mkString("\t"))
+  }
+
+  def trace(currentTime: Int, currentValues: List[Boolean]) {
+    val signals = if (!lastValues.isEmpty) lastValues.zip(currentValues).map { case (h, s) => prettyPrintSignal(h, s) }
+                  else currentValues.map(s => prettyPrintSignal(s, s))
+    println(currentTime + "\t" + signals.mkString("\t"))
+    lastValues = currentValues
   }
 }
