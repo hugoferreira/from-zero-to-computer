@@ -68,7 +68,7 @@ abstract class BasicCircuitSimulation extends Simulation {
 
   var lastValues = List[Boolean]()
 
-  def run(probes: List[(String, Wire)], printheader: Boolean = true) {
+  def run(probes: List[(String, Wire)], printheader: Boolean = true, cycles: Int = 1) {
     def prettyPrintSignal(h: Boolean, s: Boolean) = (h, s) match {
       case (false, false) => "│  "
       case (false, true)  => "└─┐"
@@ -80,7 +80,8 @@ abstract class BasicCircuitSimulation extends Simulation {
 
     if (printheader) println("time\t" + probes.map(_._1).mkString("\t"))
 
-    while (hasNext) {
+    val stopTime = currentTime + cycles
+    while (hasNext && currentTime < stopTime) {
       next()
       val currentValues = getValues
       val signals = if (!lastValues.isEmpty) lastValues.zip(currentValues).map { case (h, s) => prettyPrintSignal(h, s) }

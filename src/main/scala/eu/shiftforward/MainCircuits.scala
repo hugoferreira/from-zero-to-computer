@@ -34,8 +34,8 @@ object MainCircuits extends App {
   fullAdder(input1, input2, cin, sum, carry)
 
   input1 setSignal true
-  run(probes)
+  run(probes, cycles = 10)
 
   input2 setSignal true
-  run(probes, printheader = false)
+  run(probes, printheader = false, cycles = 10)
 }
