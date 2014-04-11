@@ -15,15 +15,23 @@ object CircuitSimulation extends BasicCircuitSimulation {
     halfAdder(b, s, sum, c2)
     or(c1, c2, cout)
   }
+
+  def clock(out: Wire, interval: Int = 2, signal: Boolean = false) {
+    schedule(interval) {
+      out setSignal signal
+      clock(out, interval, signal = !signal)
+    }
+  }
 }
 
 object MainCircuits extends App {
   import eu.shiftforward.CircuitSimulation._
 
-  val input1, input2, sum, carry = new Wire
-  val probes = ("a", input1) :: ("b", input2) :: ("sum", sum) :: ("carry", carry) :: Nil
+  val input1, input2, cin, sum, carry, clk = new Wire
+  val probes = ("a", input1) :: ("b", input2) :: ("cin", cin) :: ("sum", sum) :: ("carry", carry) :: ("clock", clk) :: Nil
 
-  halfAdder(input1, input2, sum, carry)
+  clock(clk)
+  fullAdder(input1, input2, cin, sum, carry)
 
   input1 setSignal true
   run(probes)

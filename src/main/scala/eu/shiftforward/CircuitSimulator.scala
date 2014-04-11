@@ -70,10 +70,10 @@ abstract class BasicCircuitSimulation extends Simulation {
 
   def run(probes: List[(String, Wire)], printheader: Boolean = true) {
     def prettyPrintSignal(h: Boolean, s: Boolean) = (h, s) match {
-      case (false, false) => "│ "
-      case (false, true)  => "└┐"
-      case (true, true)   => " │"
-      case (true, false)  => "┌┘"
+      case (false, false) => "│  "
+      case (false, true)  => "└─┐"
+      case (true, true)   => "  │"
+      case (true, false)  => "┌─┘"
     }
 
     def getValues = probes.map(_._2.getSignal)
