@@ -70,3 +70,25 @@ object ClockTest extends App {
     run(10)
   }
 }
+
+object MuxTest extends App {
+  new CircuitSimulation with ControlFlowElements  {
+    override val GenericGateDelay: Int = 2
+
+    val a, b, s, out = new Wire
+    implicit val probes = List(("a", a), ("b", b), ("s", s), ("out", out))
+
+    implicit val tracer = new ConsoleTracer
+
+    tracer.setHeader(probes.map(_._1))
+
+    mux(a, b, s, out)
+    run(10)
+
+    a setSignal true
+    run(10)
+
+    s setSignal true
+    run(10)
+  }
+}
