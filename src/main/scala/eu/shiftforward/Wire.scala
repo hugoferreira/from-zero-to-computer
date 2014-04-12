@@ -1,12 +1,12 @@
 package eu.shiftforward
 
-class Wire {
-  private var signal = false
-  private var actions: List[Simulation#Action] = List()
+trait Connector[T] {
+  protected var signal: T
+  protected var actions: List[Simulation#Action] = List()
 
-  def getSignal = signal
+  def getSignal: T = signal
 
-  def setSignal(s: Boolean) {
+  def setSignal(s: T) {
     if (s != signal) {
       signal = s
       actions foreach (_())
@@ -17,6 +17,14 @@ class Wire {
     actions ::= a
     a()
   }
+}
+
+class Wire extends Connector[Boolean] {
+  var signal = false
+}
+
+class Bus8 extends Connector[Short] {
+  var signal = 0: Short
 }
 
 object Ground extends Wire {

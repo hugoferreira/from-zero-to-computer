@@ -5,8 +5,8 @@ abstract class CircuitSimulation extends Simulation {
   val InverterDelay: Int = 0
   val FlipFlopDelay: Int = 0
 
-  def debug(name: String, wire: Wire) {
-    wire addAction { () => println(name + " @ " + currentTime + " = " + wire.getSignal) }
+  def debug[T](name: String, connector: Connector[T]) {
+    connector addAction { () => println(name + " @ " + currentTime + " = " + connector.getSignal) }
   }
 
   def run(cycles: Int = 1)(implicit tracer: Tracer = DummyTracer, probes: List[(String, Wire)]) {
