@@ -30,10 +30,12 @@ abstract class Simulation {
         val item = agenda.head
         curtime = item._1
         agenda -= curtime
-        item._2.foreach(_.action())
+        processActions(item._2.map(_.action))
       }
     }
   }
+
+  protected def processActions(actions: Seq[Action]) { actions.foreach(_()) }
 
   protected def hasNext = !agenda.isEmpty
 
@@ -44,4 +46,15 @@ abstract class Simulation {
 
     while (!agenda.isEmpty) next()
   }
+}
+
+trait SimulationStatistics extends Simulation {
+  private var numActions: Int = 0
+
+  override def processActions(actions: Seq[Action]) {
+    numActions += actions.size
+    super.processActions(actions)
+  }
+
+  def actionCount = numActions
 }

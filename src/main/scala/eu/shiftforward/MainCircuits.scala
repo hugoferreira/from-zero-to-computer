@@ -72,9 +72,7 @@ object ClockTest extends App {
 }
 
 object MuxTest extends App {
-  new CircuitSimulation with ControlFlowElements  {
-    override val GenericGateDelay: Int = 2
-
+  class MuxTestCircuit extends CircuitSimulation with SimulationStatistics with ControlFlowElements  {
     val a, b, s, out = new Wire
     implicit val probes = List(("a", a), ("b", b), ("s", s), ("out", out))
 
@@ -91,4 +89,9 @@ object MuxTest extends App {
     s setSignal true
     run(10)
   }
+
+  val normal = new MuxTestCircuit
+  val opt    = new MuxTestCircuit with OptimizedElements
+
+  assert(normal.actionCount > opt.actionCount)
 }
