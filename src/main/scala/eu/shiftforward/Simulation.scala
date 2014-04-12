@@ -1,10 +1,11 @@
 package eu.shiftforward
 
 import scala.collection.SortedMap
+import scala.collection.immutable.Queue
 
 abstract class Simulation {
   type Action = () => Unit
-  type Agenda = SortedMap[Int, List[WorkItem]]
+  type Agenda = SortedMap[Int, Queue[WorkItem]]
 
   case class WorkItem(time: Int, action: Action)
 
@@ -14,8 +15,9 @@ abstract class Simulation {
   private var agenda: Agenda = SortedMap()
 
   def schedule(delay: Int = 0)(block: => Unit) {
-    val item = WorkItem(currentTime + delay, () => block)
-    agenda += (item.time -> (agenda.getOrElse(item.time, List()) ++ List(item)))
+    val time = currentTime + delay
+    val item = WorkItem(time, () => block)
+    agenda += (time -> agenda.getOrElse(time, Queue()).enqueue(item))
   }
 
   protected def next() {
