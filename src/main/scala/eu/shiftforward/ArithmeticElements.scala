@@ -26,6 +26,14 @@ trait ControlFlowElements extends CircuitSimulation with LogicElements {
     and(b, s, outB)
     or(outA, outB, output)
   }
+
+  def demux(a: Wire, s: Wire, outA: Wire, outB: Wire) {
+    val notS, outA, outB = new Wire
+
+    inverter(s, notS)
+    and(a, notS, outA)
+    and(a, s, outB)
+  }
 }
 
 trait OptimizedControlFlowElements extends ControlFlowElements {
@@ -43,6 +51,20 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
     b addAction action
     s addAction action
   }
+
+  override def demux(a: Wire, s: Wire, outA: Wire, outB: Wire) {
+    def action() {
+      val input = a.getSignal
+      val selector = s.getSignal
+      schedule(GenericGateDelay) {
+        outA setSignal (if (!selector) input else false)
+        outB setSignal (if (selector)  input else false)
+      }
+    }
+
+    a addAction action
+    s addAction action
+  }
 }
 
 trait OptimizedArithmeticElements extends ArithmeticElements {
@@ -56,7 +78,7 @@ trait OptimizedArithmeticElements extends ArithmeticElements {
         case (true,  false, false) => (true,  false)
         case (true,  false, true)  => (false,  true)
         case (true,   true, false) => (false,  true)
-        case (true,   true, true)  => (true,  false)
+        case (true,   true, true)  => (true,   true)
       }
 
       schedule(GenericGateDelay) {

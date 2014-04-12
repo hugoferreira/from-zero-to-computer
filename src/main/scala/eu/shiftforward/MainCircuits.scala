@@ -95,3 +95,23 @@ object MuxTest extends App {
 
   assert(normal.actionCount > opt.actionCount)
 }
+
+object DeMuxTest extends App {
+  new CircuitSimulation with ControlFlowElements with OptimizedElements {
+    val a, s, outA, outB = new Wire
+
+    implicit val probes = List(("a", a), ("s", s), ("outA", outA), ("outB", outB))
+    implicit val tracer = new ConsoleTracer
+
+    tracer.setHeader(probes.map(_._1))
+
+    demux(a, s, outA, outB)
+    run(10)
+
+    a setSignal true
+    run(10)
+
+    s setSignal true
+    run(10)
+  }
+}
