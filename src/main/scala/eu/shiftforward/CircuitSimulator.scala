@@ -1,9 +1,9 @@
 package eu.shiftforward
 
 abstract class CircuitSimulation extends Simulation {
-  val GenericGateDelay: Int = 1
-  val InverterDelay: Int = 1
-  val FlipFlopDelay: Int = 1
+  val GenericGateDelay: Int = 0
+  val InverterDelay: Int = 0
+  val FlipFlopDelay: Int = 0
 
   def debug(name: String, wire: Wire) {
     wire addAction { () => println(name + " @ " + currentTime + " = " + wire.getSignal) }

@@ -24,7 +24,7 @@ abstract class Simulation {
 
       // We have to ensure the task queue for this time slice
       // is really flushed due to 0 delay schedules
-      while(starttime == curtime) {
+      while(starttime == curtime && !agenda.isEmpty) {
         val item = agenda.head
         curtime = item._1
         agenda -= curtime
