@@ -1,47 +1,63 @@
 package eu.shiftforward
 
-object CircuitSimulation extends BasicCircuitSimulation {
-  def halfAdder(a: Wire, b: Wire, s: Wire, c: Wire) {
-    val d, e = new Wire
-    or(a, b, d)
-    and(a, b, c)
-    inverter(c, e)
-    and(d, e, s)
-  }
+import java.io.File
 
-  def fullAdder(a: Wire, b: Wire, cin: Wire, sum: Wire, cout: Wire) {
-    val s, c1, c2 = new Wire
-    halfAdder(a, cin, s, c1)
-    halfAdder(b, s, sum, c2)
-    or(c1, c2, cout)
-  }
+object FlipFlopTest extends App {
+  new CircuitSimulation with SequentialElements {
+    val set, reset, out, cout = new Wire
+    implicit val probes = List(("set", set), ("reset", reset), ("out", out), ("cout", cout))
+    implicit val tracer = new ConsoleTracer
 
-  def clock(out: Wire, interval: Int = 2, signal: Boolean = false) {
-    schedule(interval) {
-      out setSignal signal
-      clock(out, interval, signal = !signal)
-    }
+    tracer.setHeader(probes.map(_._1))
+
+    flipflop(set, reset, out, cout)
+
+    run(3)
+
+    set setSignal true
+    run(3)
+
+    set setSignal false
+    run(3)
+
+    reset setSignal true
+    run(3)
+
+    reset setSignal false
+    run(3)
   }
 }
 
 object MainCircuits extends App {
-  import eu.shiftforward.CircuitSimulation._
+  val file = new File("/users/bytter/desktop/output2.vcd")
 
-  implicit val tracer = new ConsoleTracer
-  val input1, input2, cin, sum, carry, clk, clk3 = new Wire
-  val probes = ("a", input1) :: ("b", input2) :: ("cin", cin) :: ("sum", sum) :: ("carry", carry) :: ("clock", clk) :: ("clock 3", clk3) :: Nil
+  new CircuitSimulation with ArithmeticElements with SequentialElements {
+    override val GenericGateDelay: Int = 0
+    override val InverterDelay: Int = 0
+    override val FlipFlopDelay: Int = 1
 
-  tracer.setHeader(probes.map(_._1))
+    val input1, input2, cin, sum, carry, clk, clk3 = new Wire
+    implicit val probes = List(("a", input1), ("b", input2), ("cin", cin), ("sum", sum), ("carry", carry), ("clock", clk), ("clock3", clk3))
+    implicit val tracer = new ConsoleTracer
+    // implicit val tracer = new VCDTracer(file)
 
-  clock(clk)
-  clock(clk3, 3)
+    tracer.setHeader(probes.map(_._1))
 
-  fullAdder(input1, input2, cin, sum, carry)
-  run(probes, cycles = 10)
+    clock(clk)
+    clock(clk3, 3)
 
-  input1 setSignal true
-  run(probes, cycles = 10)
+    fullAdder(input1, input2, cin, sum, carry)
+    run(2)
 
-  input2 setSignal true
-  run(probes, cycles = 10)
+    input1 setSignal true
+    run(2)
+
+    input2 setSignal true
+    run(2)
+
+    cin setSignal true
+    run(2)
+
+    tracer.close()
+  }
 }

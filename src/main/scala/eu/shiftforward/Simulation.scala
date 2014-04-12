@@ -8,7 +8,7 @@ abstract class Simulation {
 
   case class WorkItem(time: Int, action: Action)
 
-  private var curtime = 0
+  protected var curtime = 0
   def currentTime: Int = curtime
 
   private var agenda: Agenda = SortedMap()
@@ -20,10 +20,16 @@ abstract class Simulation {
 
   protected def next() {
     if (!agenda.isEmpty) {
-      val item = agenda.head
-      curtime  = item._1
-      agenda  -= curtime
-      item._2.foreach(_.action())
+      val starttime = curtime
+
+      // We have to ensure the task queue for this time slice
+      // is really flushed due to 0 delay schedules
+      while(starttime == curtime) {
+        val item = agenda.head
+        curtime = item._1
+        agenda -= curtime
+        item._2.foreach(_.action())
+      }
     }
   }
 

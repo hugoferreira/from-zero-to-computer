@@ -1,32 +1,63 @@
 package eu.shiftforward
 
-abstract class BasicCircuitSimulation extends Simulation {
-  val GenericGateDelay: Int = 2
+abstract class CircuitSimulation extends Simulation {
+  val GenericGateDelay: Int = 1
   val InverterDelay: Int = 1
+  val FlipFlopDelay: Int = 1
 
-  class Wire {
-    private var signal = false
-    private var actions: List[Action] = List()
-
-    def getSignal = signal
-
-    def setSignal(s: Boolean) {
-      if (s != signal) {
-        signal = s
-        actions foreach (_())
-      }
-    }
-
-    def addAction(a: Action) {
-      actions ::= a
-      a()
-    }
-  }
-
-  def probe(name: String, wire: Wire) {
+  def debug(name: String, wire: Wire) {
     wire addAction { () => println(name + " @ " + currentTime + " = " + wire.getSignal) }
   }
 
+  def run(cycles: Int = 1)(implicit tracer: Tracer = DummyTracer, probes: List[(String, Wire)]) {
+    val stopTime = currentTime + cycles
+    while (hasNext && currentTime < stopTime) {
+      next()
+      tracer.trace(currentTime, probes.map(_._2.getSignal))
+    }
+
+    curtime = stopTime
+  }
+}
+
+trait SequentialElements extends CircuitSimulation {
+  def clock(out: Wire, interval: Int = 1, signal: Boolean = false) {
+    schedule(interval) {
+      out setSignal !signal
+      clock(out, interval, !signal)
+    }
+  }
+
+  def flipflop(set: Wire, reset: Wire, out: Wire, cout: Wire, initState: Boolean = false) {
+    var state = initState
+
+    def action() {
+      val isSet = set.getSignal
+      val isReset = reset.getSignal
+
+      schedule(FlipFlopDelay) {
+        state = (state, isSet, isReset) match {
+          case (false, false, false) => false
+          case (false, false, true)  => false
+          case (false,  true, false) => true
+          case (false,  true, true)  => true
+          case (true,  false, false) => true
+          case (true,  false, true)  => false
+          case (true,   true, false) => true
+          case (true,   true, true)  => true
+        }
+
+        out  setSignal state
+        cout setSignal !state
+      }
+    }
+
+    set addAction action
+    reset addAction action
+  }
+}
+
+trait LogicElements extends CircuitSimulation {
   def inverter(input: Wire, output: Wire) {
     def action() {
       val inputSig = input.getSignal
@@ -65,39 +96,4 @@ abstract class BasicCircuitSimulation extends Simulation {
   def or(a: Wire, b: Wire, output: Wire)   = binaryLogicGate(a, b, output) { _ || _ }
   def xor(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { _ ^ _ }
   def nand(a: Wire, b: Wire, output: Wire) = binaryLogicGate(a, b, output) { (x, y) => !(x && y) }
-
-  def run(probes: List[(String, Wire)], cycles: Int = 1)(implicit tracer: Tracer = new ConsoleTracer) {
-    val stopTime = currentTime + cycles
-    while (hasNext && currentTime < stopTime) {
-      next()
-      tracer.trace(currentTime, probes.map(_._2.getSignal))
-    }
-  }
-}
-
-trait Tracer {
-  def setHeader(probes: List[String])
-  def trace(currentTime: Int, currentValues: List[Boolean])
-}
-
-class ConsoleTracer extends Tracer {
-  var lastValues = List[Boolean]()
-
-  def prettyPrintSignal(h: Boolean, s: Boolean) = (h, s) match {
-    case (false, false) => "│  "
-    case (false, true)  => "└─┐"
-    case (true, true)   => "  │"
-    case (true, false)  => "┌─┘"
-  }
-
-  def setHeader(probes: List[String]) {
-    println("time\t" + probes.mkString("\t"))
-  }
-
-  def trace(currentTime: Int, currentValues: List[Boolean]) {
-    val signals = if (!lastValues.isEmpty) lastValues.zip(currentValues).map { case (h, s) => prettyPrintSignal(h, s) }
-                  else currentValues.map(s => prettyPrintSignal(s, s))
-    println(currentTime + "\t" + signals.mkString("\t"))
-    lastValues = currentValues
-  }
 }
