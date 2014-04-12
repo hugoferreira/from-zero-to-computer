@@ -9,7 +9,7 @@ abstract class CircuitSimulation extends Simulation {
     connector addAction { () => println(name + " @ " + currentTime + " = " + connector.getSignal) }
   }
 
-  def run(cycles: Int = 1)(implicit tracer: Tracer = DummyTracer, probes: List[(String, Wire)]) {
+  def run(cycles: Int = 1)(implicit tracer: Tracer = DummyTracer, probes: List[(String, Connector[_])]) {
     val stopTime = currentTime + cycles
     while (hasNext && currentTime < stopTime) {
       next()
@@ -36,16 +36,7 @@ trait SequentialElements extends CircuitSimulation {
       val isReset = reset.getSignal
 
       schedule(FlipFlopDelay) {
-        state = (state, isSet, isReset) match {
-          case (false, false, false) => false
-          case (false, false, true)  => false
-          case (false,  true, false) => true
-          case (false,  true, true)  => true
-          case (true,  false, false) => true
-          case (true,  false, true)  => false
-          case (true,   true, false) => true
-          case (true,   true, true)  => true
-        }
+        state = isSet || (state && !isReset)
 
         out  setSignal state
         cout setSignal !state
