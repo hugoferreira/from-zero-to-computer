@@ -1,12 +1,18 @@
 package eu.shiftforward
 
 trait Connector[T] {
-  protected var signal: T
-  protected var actions: List[Simulation#Action] = List()
+  def getSignal: T
+  def setSignal(s: T)
+  def addAction(a: Simulation#Action)
+}
 
-  def getSignal: T = signal
+class Wire extends Connector[Boolean] {
+  var signal: Boolean = false
+  var actions: List[Simulation#Action] = List()
 
-  def setSignal(s: T) {
+  def getSignal: Boolean = signal
+
+  def setSignal(s: Boolean) {
     if (s != signal) {
       signal = s
       actions foreach (_())
@@ -19,12 +25,29 @@ trait Connector[T] {
   }
 }
 
-class Wire extends Connector[Boolean] {
-  var signal = false
-}
+// ToDo: use shapeless to enforce width conformance at type level
+class Bus(width: Int) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
+  // from least to most significant
+  private val wires = (0 to width).map(_ => new Wire).toArray
 
-class Bus8 extends Connector[Short] {
-  var signal = 0: Short
+  def iterator: Iterator[Wire] = wires.iterator
+
+  def getSignal = wires.map(_.getSignal)
+
+  def setSignal(ss: Iterable[Boolean]) {
+    wires.zip(ss).foreach { case (w, s) => w setSignal s }
+  }
+
+  def setSignal(s: Int) {
+    wires.zip(s.toBinaryString.reverse).foreach {
+      case (sig, '0') => sig setSignal false
+      case (sig, '1') => sig setSignal true
+    }
+  }
+
+  def addAction(a: Simulation#Action) {
+    wires.foreach { _ addAction a }
+  }
 }
 
 object Ground extends Wire {
