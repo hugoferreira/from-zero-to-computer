@@ -26,9 +26,9 @@ class Wire extends Connector[Boolean] {
 }
 
 // ToDo: use shapeless to enforce width conformance at type level
-class Bus(width: Int) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
+class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
   // from least to most significant
-  private val wires = (0 to width).map(_ => new Wire).toArray
+  def this(width: Int) = this((0 to width).map(_ => new Wire) : _*)
 
   def iterator: Iterator[Wire] = wires.iterator
 
@@ -49,6 +49,7 @@ class Bus(width: Int) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
     wires.foreach { _ addAction a }
   }
 }
+
 
 object Ground extends Wire {
   override def getSignal = false

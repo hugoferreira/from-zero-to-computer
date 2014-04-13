@@ -115,3 +115,30 @@ object DeMuxTest extends App {
     run(10)
   }
 }
+
+object BusTest extends App {
+  new CircuitSimulation with LogicElements {
+    val a, b, c, d = new Wire
+    val x, y, z, k = new Wire
+    val busIn  = new Bus(a, b, c, d)
+    val busOut = new Bus(x, y, z, k)
+
+    implicit val probes = List(("a", a), ("b", b), ("c", c), ("d", d), ("x", x), ("y", y), ("z", z), ("k", k))
+    implicit val tracer = new ConsoleTracer
+
+    tracer.setHeader(probes.map(_._1))
+
+    inverter(a, x)
+    inverter(b, y)
+    inverter(c, z)
+    inverter(d, k)
+
+    run(10)
+
+    a setSignal true
+    run(10)
+
+    busIn setSignal 0xF
+    run(10)
+  }
+}
