@@ -48,8 +48,9 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire]
   def addAction(a: Simulation#Action) {
     wires.foreach { _ addAction a }
   }
-}
 
+  override def toString() = wires.map(s => if (s.getSignal) 1 else 0).mkString
+}
 
 object Ground extends Wire {
   override def getSignal = false

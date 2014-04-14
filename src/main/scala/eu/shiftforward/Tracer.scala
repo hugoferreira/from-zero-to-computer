@@ -2,13 +2,13 @@ package eu.shiftforward
 
 trait Tracer {
   def setHeader(probes: List[String])
-  def trace(currentTime: Int, currentValues: List[Any])
+  def trace(currentTime: Int, currentValues: List[Connector[_]])
   def close() { }
 }
 
 object DummyTracer extends Tracer {
   def setHeader(probes: List[String]) { }
-  def trace(currentTime: Int, currentValues: List[Any]) { }
+  def trace(currentTime: Int, currentValues: List[Connector[_]]) { }
 }
 
 class ConsoleTracer extends Tracer {
@@ -25,17 +25,18 @@ class ConsoleTracer extends Tracer {
     println("time\t" + probes.mkString("\t"))
   }
 
-  def trace(currentTime: Int, currentValues: List[Any]) {
-    val signals = if (!lastValues.isEmpty) lastValues.zip(currentValues).map {
+  def trace(currentTime: Int, currentValues: List[Connector[_]]) {
+    val signals = currentValues.map(_.getSignal)
+    val values  = if (!lastValues.isEmpty) lastValues.zip(signals).map {
       case (h: Boolean, s: Boolean) => prettyPrintSignal(h, s)
-      case (_, s: Any) => s.toString
-    } else currentValues.map {
+      case (_, b: Iterable[Boolean]) => b.map(s => if (s) 1 else 0).mkString
+    } else signals.map {
       case s: Boolean => prettyPrintSignal(s, s)
-      case s: Any => s.toString
+      case b: Iterable[Boolean] => b.map(s => if (s) 1 else 0).mkString
     }
 
-    println(currentTime + "\t" + signals.mkString("\t"))
-    lastValues = currentValues
+    println(currentTime + "\t" + values.mkString("\t"))
+    lastValues = signals
   }
 }
 
@@ -50,11 +51,11 @@ class VCDTracer(file: java.io.File) extends Tracer {
     pw.println("$enddefinitions $end")
   }
 
-  def trace(currentTime: Int, currentValues: List[Any]) {
+  def trace(currentTime: Int, currentValues: List[Connector[_]]) {
     pw.println("#" + currentTime)
     currentValues.zip(symbolList).map {
-      case (v: Boolean, s) => (if (v) 1 else 0) + s
-      case (v: Any, s) => v.toString + s
+      case (v: Wire, s) => (if (v.getSignal) 1 else 0) + s
+      case (v: Bus, s) => v.toString + s
     } foreach pw.println
   }
 

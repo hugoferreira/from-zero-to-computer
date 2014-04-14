@@ -13,7 +13,7 @@ abstract class CircuitSimulation extends Simulation {
     val stopTime = currentTime + cycles
     while (hasNext && currentTime < stopTime) {
       next()
-      tracer.trace(currentTime, probes.map(_._2.getSignal))
+      tracer.trace(currentTime, probes.map(_._2))
     }
 
     curtime = stopTime
@@ -82,9 +82,11 @@ trait LogicElements extends CircuitSimulation {
   def or(ins: List[Wire], output: Wire)    = associativeLogicGate(ins, output) { _ || _ }
   def xor(ins: List[Wire], output: Wire)   = associativeLogicGate(ins, output) { _ ^ _ }
   def nand(ins: List[Wire], output: Wire)  = associativeLogicGate(ins, output) { (x, y) => !(x && y) }
+  def nor(ins: List[Wire], output: Wire)   = associativeLogicGate(ins, output) { (x, y) => !(x || y) }
 
   def and(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { _ && _ }
   def or(a: Wire, b: Wire, output: Wire)   = binaryLogicGate(a, b, output) { _ || _ }
   def xor(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { _ ^ _ }
   def nand(a: Wire, b: Wire, output: Wire) = binaryLogicGate(a, b, output) { (x, y) => !(x && y) }
+  def nor(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { (x, y) => !(x || y) }
 }
