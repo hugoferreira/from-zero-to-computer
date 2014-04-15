@@ -28,7 +28,7 @@ class Wire extends Connector[Boolean] {
 // ToDo: use shapeless to enforce width conformance at type level
 class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
   // from least to most significant
-  def this(width: Int) = this((0 to width).map(_ => new Wire) : _*)
+  def this(width: Int) = this((1 to width).map(_ => new Wire) : _*)
 
   def iterator: Iterator[Wire] = wires.iterator
 

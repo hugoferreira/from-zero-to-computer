@@ -139,3 +139,25 @@ object BusTest extends App {
     run(10)
   }
 }
+
+object EightBitAdder extends App {
+  new CircuitSimulation with LogicElements with ArithmeticElements {
+    val busA, busB, busOut = new Bus(8)
+    val overflow = new Wire
+
+    implicit val probes = List(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("overflow", overflow))
+    implicit val tracer = new ConsoleTracer
+    tracer.setHeader(probes.map(_._1))
+
+    multiBitAdder(busA, busB, busOut, overflow)
+
+    run(1)
+
+    busA setSignal 0xFA
+
+    (1 to 10).foreach { i =>
+      busB setSignal i
+      run(1)
+    }
+  }
+}

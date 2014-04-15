@@ -29,10 +29,10 @@ class ConsoleTracer extends Tracer {
     val signals = currentValues.map(_.getSignal)
     val values  = if (!lastValues.isEmpty) lastValues.zip(signals).map {
       case (h: Boolean, s: Boolean) => prettyPrintSignal(h, s)
-      case (_, b: Iterable[Boolean]) => b.map(s => if (s) 1 else 0).mkString
+      case (_, b: Iterable[Boolean]) => b.map(s => if (s) 1 else 0).mkString.reverse
     } else signals.map {
       case s: Boolean => prettyPrintSignal(s, s)
-      case b: Iterable[Boolean] => b.map(s => if (s) 1 else 0).mkString
+      case b: Iterable[Boolean] => b.map(s => if (s) 1 else 0).mkString.reverse
     }
 
     println(currentTime + "\t" + values.mkString("\t"))

@@ -58,6 +58,15 @@ trait LogicElements extends CircuitSimulation {
     input addAction action
   }
 
+  def connect(input: Wire, output: Wire) {
+    def action() {
+      val inputSig = input.getSignal
+      schedule(InverterDelay) { output setSignal inputSig }
+    }
+
+    input addAction action
+  }
+
   def associativeLogicGate(ins: List[Wire], output: Wire)(op: (Boolean, Boolean) => Boolean) {
     def action() {
       val inputs = ins.map(_.getSignal)

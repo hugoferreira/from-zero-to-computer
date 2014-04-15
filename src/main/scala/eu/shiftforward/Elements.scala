@@ -15,6 +15,14 @@ trait ArithmeticElements extends CircuitSimulation with LogicElements {
     halfAdder(b, s, sum, c2)
     or(c1, c2, cout)
   }
+
+  def multiBitAdder(a: Bus, b: Bus, sum: Bus, overflow: Wire) {
+    connect((a zip b zip sum).foldLeft(Ground: Wire) { case (carry, ((a, b), c)) =>
+      val cout = new Wire
+      fullAdder(a, b, carry, c, cout)
+      cout
+    }, overflow)
+  }
 }
 
 trait ControlFlowElements extends CircuitSimulation with LogicElements {
