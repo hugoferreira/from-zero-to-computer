@@ -35,6 +35,10 @@ trait ControlFlowElements extends CircuitSimulation with LogicElements {
     or(outA, outB, output)
   }
 
+  def multiBitMultiplexer(a: Bus, b: Bus, selector: Wire, out: Bus) {
+    (a zip b zip out).map { case ((a, b), out) => mux(a, b, selector, out) }
+  }
+
   def demux(a: Wire, s: Wire, outA: Wire, outB: Wire) {
     val notS, outA, outB = new Wire
 
@@ -51,7 +55,7 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
       val inputB = b.getSignal
       val selector = s.getSignal
       schedule(GenericGateDelay) {
-        output setSignal (if (selector) inputB else inputA)
+        output ~> (if (selector) inputB else inputA)
       }
     }
 
@@ -65,8 +69,8 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
       val input = a.getSignal
       val selector = s.getSignal
       schedule(GenericGateDelay) {
-        outA setSignal (if (!selector) input else false)
-        outB setSignal (if (selector)  input else false)
+        outA ~> (if (!selector) input else false)
+        outB ~> (if (selector)  input else false)
       }
     }
 
@@ -90,8 +94,8 @@ trait OptimizedArithmeticElements extends ArithmeticElements {
       }
 
       schedule(GenericGateDelay) {
-        sum setSignal outSum
-        cout setSignal outCarry
+        sum ~> outSum
+        cout ~> outCarry
       }
     }
 

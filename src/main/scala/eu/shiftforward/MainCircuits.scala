@@ -15,16 +15,16 @@ object FlipFlopTest extends App {
     flipflop(set, reset, out, cout)
     run(3)
 
-    set setSignal true
+    set ~> true
     run(3)
 
-    set setSignal false
+    set ~> false
     run(3)
 
-    reset setSignal true
+    reset ~> true
     run(3)
 
-    reset setSignal false
+    reset ~> false
     run(3)
   }
 }
@@ -40,13 +40,13 @@ object SumTest extends App {
     fullAdder(input1, input2, cin, sum, carry)
     run(2)
 
-    input1 setSignal true
+    input1 ~> true
     run(2)
 
-    input2 setSignal true
+    input2 ~> true
     run(2)
 
-    cin setSignal true
+    cin ~> true
     run(2)
 
     tracer.close()
@@ -83,10 +83,10 @@ object MuxTest extends App {
     mux(a, b, s, out)
     run(10)
 
-    a setSignal true
+    a ~> true
     run(10)
 
-    s setSignal true
+    s ~> true
     run(10)
   }
 
@@ -108,10 +108,10 @@ object DeMuxTest extends App {
     demux(a, s, outA, outB)
     run(10)
 
-    a setSignal true
+    a ~> true
     run(10)
 
-    s setSignal true
+    s ~> true
     run(10)
   }
 }
@@ -132,7 +132,7 @@ object BusTest extends App {
 
     run(10)
 
-    a setSignal true
+    a ~> true
     run(10)
 
     busIn setSignal 0xF
@@ -141,11 +141,11 @@ object BusTest extends App {
 }
 
 object EightBitAdder extends App {
-  new CircuitSimulation with LogicElements with ArithmeticElements {
+  new CircuitSimulation with LogicElements with ArithmeticElements with SequentialElements {
     val busA, busB, busOut = new Bus(8)
     val overflow = new Wire
 
-    implicit val probes = List(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("overflow", overflow))
+    implicit val probes = List(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("of", overflow))
     implicit val tracer = new ConsoleTracer
     tracer.setHeader(probes.map(_._1))
 
@@ -159,5 +159,28 @@ object EightBitAdder extends App {
       busB setSignal i
       run(1)
     }
+  }
+}
+
+object EightBitMultiplexer extends App {
+  new CircuitSimulation with LogicElements with ControlFlowElements {
+    val busA, busB, busOut = new Bus(8)
+    val selector = new Wire
+
+    implicit val probes = List(("bus a (in)", busA), ("bus b (in)", busB), ("sel", selector), ("sum (output)", busOut))
+    implicit val tracer = new ConsoleTracer
+    tracer.setHeader(probes.map(_._1))
+
+    multiBitMultiplexer(busA, busB, selector, busOut)
+    run(1)
+
+    busA setSignal 0xFA
+    run(1)
+
+    selector ~> true
+    run(1)
+
+    busB setSignal 0xFF
+    run(1)
   }
 }

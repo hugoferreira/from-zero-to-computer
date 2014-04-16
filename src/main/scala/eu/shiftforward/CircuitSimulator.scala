@@ -23,7 +23,7 @@ abstract class CircuitSimulation extends Simulation {
 trait SequentialElements extends CircuitSimulation {
   def clock(out: Wire, interval: Int = 1, signal: Boolean = false) {
     schedule(interval) {
-      out setSignal !signal
+      out ~> !signal
       clock(out, interval, !signal)
     }
   }
@@ -38,8 +38,8 @@ trait SequentialElements extends CircuitSimulation {
       schedule(FlipFlopDelay) {
         state = isSet || (state && !isReset)
 
-        out  setSignal state
-        cout setSignal !state
+        out  ~> state
+        cout ~> !state
       }
     }
 
@@ -50,27 +50,23 @@ trait SequentialElements extends CircuitSimulation {
 
 trait LogicElements extends CircuitSimulation {
   def inverter(input: Wire, output: Wire) {
-    def action() {
+    input addAction { () =>
       val inputSig = input.getSignal
-      schedule(InverterDelay) { output setSignal !inputSig }
+      schedule(InverterDelay) { output ~> !inputSig }
     }
-
-    input addAction action
   }
 
   def connect(input: Wire, output: Wire) {
-    def action() {
+    input addAction { () =>
       val inputSig = input.getSignal
-      schedule(InverterDelay) { output setSignal inputSig }
+      schedule(InverterDelay) { output ~> inputSig }
     }
-
-    input addAction action
   }
 
   def associativeLogicGate(ins: List[Wire], output: Wire)(op: (Boolean, Boolean) => Boolean) {
     def action() {
       val inputs = ins.map(_.getSignal)
-      schedule(GenericGateDelay) { output setSignal inputs.reduceLeft(op) }
+      schedule(GenericGateDelay) { output ~> inputs.reduceLeft(op) }
     }
 
     ins.foreach(_ addAction action)
@@ -80,7 +76,7 @@ trait LogicElements extends CircuitSimulation {
     def action() {
       val inputA = a.getSignal
       val inputB = b.getSignal
-      schedule(GenericGateDelay) { output setSignal op(inputA, inputB) }
+      schedule(GenericGateDelay) { output ~> op(inputA, inputB) }
     }
 
     a addAction action

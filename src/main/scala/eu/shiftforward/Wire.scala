@@ -2,6 +2,7 @@ package eu.shiftforward
 
 trait Connector[T] {
   def getSignal: T
+  def ~>(s: T) = setSignal(s)
   def setSignal(s: T)
   def addAction(a: Simulation#Action)
 }
@@ -27,7 +28,6 @@ class Wire extends Connector[Boolean] {
 
 // ToDo: use shapeless to enforce width conformance at type level
 class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
-  // from least to most significant
   def this(width: Int) = this((1 to width).map(_ => new Wire) : _*)
 
   def iterator: Iterator[Wire] = wires.iterator
@@ -35,13 +35,13 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire]
   def getSignal = wires.map(_.getSignal)
 
   def setSignal(ss: Iterable[Boolean]) {
-    wires.zip(ss).foreach { case (w, s) => w setSignal s }
+    wires.zip(ss).foreach { case (w, s) => w ~> s }
   }
 
   def setSignal(s: Int) {
     wires.zip(s.toBinaryString.reverse).foreach {
-      case (sig, '0') => sig setSignal false
-      case (sig, '1') => sig setSignal true
+      case (sig, '0') => sig ~> false
+      case (sig, '1') => sig ~> true
     }
   }
 
@@ -49,7 +49,7 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire]
     wires.foreach { _ addAction a }
   }
 
-  override def toString() = wires.map(s => if (s.getSignal) 1 else 0).mkString
+  override def toString() = wires.map(s => if (s.getSignal) 1 else 0).mkString.reverse
 }
 
 object Ground extends Wire {
