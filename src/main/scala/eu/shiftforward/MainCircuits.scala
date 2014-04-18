@@ -162,6 +162,25 @@ object EightBitAdder extends App {
   }
 }
 
+object EightBitIncrementer extends App {
+  new CircuitSimulation with LogicElements with ArithmeticElements with SequentialElements {
+    val busA, busOut = new Bus(8)
+    val overflow = new Wire
+
+    implicit val probes = List(("bus a (in)", busA), ("sum (output)", busOut), ("of", overflow))
+    implicit val tracer = new ConsoleTracer
+    tracer.setHeader(probes.map(_._1))
+
+    multiBitIncrementer(busA, busOut, overflow)
+    run(1)
+
+    (0xFC to 0xFF).foreach { i =>
+      busA setSignal i
+      run(1)
+    }
+  }
+}
+
 object EightBitMultiplexer extends App {
   new CircuitSimulation with LogicElements with ControlFlowElements {
     val busA, busB, busOut = new Bus(8)

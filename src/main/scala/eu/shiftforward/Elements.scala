@@ -99,6 +99,16 @@ trait ArithmeticElements extends CircuitSimulation with LogicElements {
       cout
     }, overflow)
   }
+
+  def multiBitIncrementer(a: Bus, sum: Bus, overflow: Wire) {
+    multiBitAdder(a, constant8(a.size)(0x01), sum, overflow)
+  }
+
+  lazy val constant8 = (width: Int) => (c: Int) => {
+    val bus = new Bus(width)
+    bus.setSignal(c)
+    bus
+  }
 }
 
 trait ControlFlowElements extends CircuitSimulation with LogicElements {
