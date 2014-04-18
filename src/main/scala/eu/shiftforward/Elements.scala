@@ -1,11 +1,13 @@
 package eu.shiftforward
 
 trait LogicElements extends CircuitSimulation {
-  def inverter(input: Wire, output: Wire) {
+  def inverter(input: Wire) = {
+    val output = new Wire
     input addAction { () =>
       val inputSig = input.getSignal
       schedule(InverterDelay) { output ~> !inputSig }
     }
+    output
   }
 
   def connect(input: Wire, output: Wire) {
@@ -15,16 +17,19 @@ trait LogicElements extends CircuitSimulation {
     }
   }
 
-  def associativeLogicGate(ins: List[Wire], output: Wire)(op: (Boolean, Boolean) => Boolean) {
+  def associativeLogicGate(ins: List[Wire])(op: (Boolean, Boolean) => Boolean) = {
+    val output = new Wire
     def action() {
       val inputs = ins.map(_.getSignal)
       schedule(GenericGateDelay) { output ~> inputs.reduceLeft(op) }
     }
 
     ins foreach { _ addAction action }
+    output
   }
 
-  def binaryLogicGate(a: Wire, b: Wire, output: Wire)(op: (Boolean, Boolean) => Boolean) {
+  def binaryLogicGate(a: Wire, b: Wire)(op: (Boolean, Boolean) => Boolean) = {
+    val output = new Wire
     def action() {
       val inputA = a.getSignal
       val inputB = b.getSignal
@@ -33,19 +38,20 @@ trait LogicElements extends CircuitSimulation {
 
     a addAction action
     b addAction action
+    output
   }
 
-  def and(ins: List[Wire], output: Wire)   = associativeLogicGate(ins, output) { _ && _ }
-  def or(ins: List[Wire], output: Wire)    = associativeLogicGate(ins, output) { _ || _ }
-  def xor(ins: List[Wire], output: Wire)   = associativeLogicGate(ins, output) { _ ^ _ }
-  def nand(ins: List[Wire], output: Wire)  = associativeLogicGate(ins, output) { (x, y) => !(x && y) }
-  def nor(ins: List[Wire], output: Wire)   = associativeLogicGate(ins, output) { (x, y) => !(x || y) }
+  def and(ins: List[Wire])   = associativeLogicGate(ins) { _ && _ }
+  def or(ins: List[Wire])    = associativeLogicGate(ins) { _ || _ }
+  def xor(ins: List[Wire])   = associativeLogicGate(ins) { _ ^ _ }
+  def nand(ins: List[Wire])  = associativeLogicGate(ins) { (x, y) => !(x && y) }
+  def nor(ins: List[Wire])   = associativeLogicGate(ins) { (x, y) => !(x || y) }
 
-  def and(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { _ && _ }
-  def or(a: Wire, b: Wire, output: Wire)   = binaryLogicGate(a, b, output) { _ || _ }
-  def xor(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { _ ^ _ }
-  def nand(a: Wire, b: Wire, output: Wire) = binaryLogicGate(a, b, output) { (x, y) => !(x && y) }
-  def nor(a: Wire, b: Wire, output: Wire)  = binaryLogicGate(a, b, output) { (x, y) => !(x || y) }
+  def and(a: Wire, b: Wire)  = binaryLogicGate(a, b) { _ && _ }
+  def or(a: Wire, b: Wire)   = binaryLogicGate(a, b) { _ || _ }
+  def xor(a: Wire, b: Wire)  = binaryLogicGate(a, b) { _ ^ _ }
+  def nand(a: Wire, b: Wire) = binaryLogicGate(a, b) { (x, y) => !(x && y) }
+  def nor(a: Wire, b: Wire)  = binaryLogicGate(a, b) { (x, y) => !(x || y) }
 }
 
 trait SequentialElements extends CircuitSimulation {
@@ -56,7 +62,8 @@ trait SequentialElements extends CircuitSimulation {
     }
   }
 
-  def flipflop(set: Wire, reset: Wire, out: Wire, cout: Wire, initState: Boolean = false) {
+  def flipflop(set: Wire, reset: Wire, initState: Boolean = false) = {
+    val out, cout = new Wire
     var state = initState
 
     def action() {
@@ -73,36 +80,38 @@ trait SequentialElements extends CircuitSimulation {
 
     set addAction action
     reset addAction action
+
+    (out, cout)
   }
 }
 
-trait ArithmeticElements extends CircuitSimulation with LogicElements {
-  def halfAdder(a: Wire, b: Wire, s: Wire, c: Wire) {
-    val d, e = new Wire
-    or(a, b, d)
-    and(a, b, c)
-    inverter(c, e)
-    and(d, e, s)
+trait ArithmeticElements extends LogicElements {
+  def halfAdder(a: Wire, b: Wire) = {
+    val c = and(a, b)
+    (and(or(a, b), inverter(c)), c)
   }
 
-  def fullAdder(a: Wire, b: Wire, cin: Wire, sum: Wire, cout: Wire) {
-    val s, c1, c2 = new Wire
-    halfAdder(a, cin, s, c1)
-    halfAdder(b, s, sum, c2)
-    or(c1, c2, cout)
+  def fullAdder(a: Wire, b: Wire, cin: Wire) = {
+    val (s,   c1) = halfAdder(a, cin)
+    val (sum, c2) = halfAdder(b, s)
+    (sum, or(c1, c2))
   }
 
-  def multiBitAdder(a: Bus, b: Bus, sum: Bus, overflow: Wire) {
+  def multiBitAdder(a: Bus, b: Bus) = {
+    val sum = new Bus(a.size)
+    val overflow = new Wire
+
     connect((a zip b zip sum).foldLeft(Ground: Wire) { case (carry, ((a, b), c)) =>
-      val cout = new Wire
-      fullAdder(a, b, carry, c, cout)
+      val (c1, cout) = fullAdder(a, b, carry)
+      connect(c1, c)
       cout
     }, overflow)
+
+    (sum, overflow)
   }
 
-  def multiBitIncrementer(a: Bus, sum: Bus, overflow: Wire) {
-    multiBitAdder(a, constant8(a.size)(0x01), sum, overflow)
-  }
+  def multiBitIncrementer(a: Bus) =
+    multiBitAdder(a, constant8(a.size)(0x01))
 
   lazy val constant8 = (width: Int) => (c: Int) => {
     val bus = new Bus(width)
@@ -111,25 +120,13 @@ trait ArithmeticElements extends CircuitSimulation with LogicElements {
   }
 }
 
-trait ControlFlowElements extends CircuitSimulation with LogicElements {
-  def mux(a: Wire, b: Wire, s: Wire, output: Wire) {
-    val notS, outA, outB = new Wire
+trait ControlFlowElements extends LogicElements {
+  def mux(a: Wire, b: Wire, s: Wire) =
+    or(and(a, inverter(s)), and(b, s))
 
-    inverter(s, notS)
-    and(a, notS, outA)
-    and(b, s, outB)
-    or(outA, outB, output)
-  }
+  def multiBitMultiplexer(a: Bus, b: Bus, selector: Wire) =
+    new Bus((a zip b).map { case (a, b) => mux(a, b, selector) })
 
-  def multiBitMultiplexer(a: Bus, b: Bus, selector: Wire, out: Bus) {
-    (a zip b zip out).map { case ((a, b), out) => mux(a, b, selector, out) }
-  }
-
-  def demux(a: Wire, s: Wire, outA: Wire, outB: Wire) {
-    val notS, outA, outB = new Wire
-
-    inverter(s, notS)
-    and(a, notS, outA)
-    and(a, s, outB)
-  }
+  def demux(a: Wire, s: Wire) =
+    (and(a, inverter(s)), and(a, s))
 }

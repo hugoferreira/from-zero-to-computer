@@ -38,10 +38,10 @@ object Source extends Wire {
   override def addAction(a: Simulation#Action) { }
 }
 
-
 // ToDo: use shapeless to enforce width conformance at type level
 class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
   def this(width: Int) = this((1 to width).map(_ => new Wire) : _*)
+  def this(wires: Iterable[Wire]) = this(wires.toSeq : _*)
 
   def iterator: Iterator[Wire] = wires.iterator
 

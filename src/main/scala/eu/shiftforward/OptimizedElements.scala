@@ -1,7 +1,8 @@
 package eu.shiftforward
 
 trait OptimizedControlFlowElements extends ControlFlowElements {
-  override def mux(a: Wire, b: Wire, s: Wire, output: Wire) {
+  override def mux(a: Wire, b: Wire, s: Wire) = {
+    val output = new Wire
     def action() {
       val inputA = a.getSignal
       val inputB = b.getSignal
@@ -14,9 +15,13 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
     a addAction action
     b addAction action
     s addAction action
+
+    output
   }
 
-  override def demux(a: Wire, s: Wire, outA: Wire, outB: Wire) {
+  override def demux(a: Wire, s: Wire) = {
+    val outA, outB = new Wire
+
     def action() {
       val input = a.getSignal
       val selector = s.getSignal
@@ -28,11 +33,15 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
 
     a addAction action
     s addAction action
+
+    (outA, outB)
   }
 }
 
 trait OptimizedArithmeticElements extends ArithmeticElements {
-  override def fullAdder(a: Wire, b: Wire, cin: Wire, sum: Wire, cout: Wire) {
+  override def fullAdder(a: Wire, b: Wire, cin: Wire) = {
+    val sum, cout = new Wire
+
     def action() {
       val (outSum, outCarry) = (a.getSignal, b.getSignal, cin.getSignal) match {
         case (false, false, false) => (false, false)
@@ -54,6 +63,8 @@ trait OptimizedArithmeticElements extends ArithmeticElements {
     a addAction action
     b addAction action
     cin addAction action
+
+    (sum, cout)
   }
 }
 
