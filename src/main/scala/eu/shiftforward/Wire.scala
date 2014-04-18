@@ -26,32 +26,6 @@ class Wire extends Connector[Boolean] {
   }
 }
 
-// ToDo: use shapeless to enforce width conformance at type level
-class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
-  def this(width: Int) = this((1 to width).map(_ => new Wire) : _*)
-
-  def iterator: Iterator[Wire] = wires.iterator
-
-  def getSignal = wires.map(_.getSignal)
-
-  def setSignal(ss: Iterable[Boolean]) {
-    wires.zip(ss).foreach { case (w, s) => w ~> s }
-  }
-
-  def setSignal(s: Int) {
-    wires.zip(s.toBinaryString.reverse).foreach {
-      case (sig, '0') => sig ~> false
-      case (sig, '1') => sig ~> true
-    }
-  }
-
-  def addAction(a: Simulation#Action) {
-    wires.foreach { _ addAction a }
-  }
-
-  override def toString() = wires.map(s => if (s.getSignal) 1 else 0).mkString.reverse
-}
-
 object Ground extends Wire {
   override def getSignal = false
   override def setSignal(s: Boolean) { }
@@ -62,4 +36,30 @@ object Source extends Wire {
   override def getSignal = true
   override def setSignal(s: Boolean) { }
   override def addAction(a: Simulation#Action) { }
+}
+
+
+// ToDo: use shapeless to enforce width conformance at type level
+class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire] {
+  def this(width: Int) = this((1 to width).map(_ => new Wire) : _*)
+
+  def iterator: Iterator[Wire] = wires.iterator
+
+  def getSignal = wires.map(_.getSignal)
+
+  def setSignal(ss: Iterable[Boolean]) {
+    wires zip ss foreach { case (w, s) => w ~> s }
+  }
+
+  def setSignal(s: Int) {
+    wires zip s.toBinaryString.reverse foreach {
+      case (sig, c: Char) => sig ~> (c == '1')
+    }
+  }
+
+  def addAction(a: Simulation#Action) {
+    wires foreach { _ addAction a }
+  }
+
+  override def toString() = wires.map(s => if (s.getSignal) 1 else 0).mkString.reverse
 }
