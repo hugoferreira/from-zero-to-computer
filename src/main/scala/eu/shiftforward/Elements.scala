@@ -12,7 +12,7 @@ trait LogicElements extends CircuitSimulation {
     output
   }
 
-  def inverter(input: Bus): Bus = new Bus(input map inverter)
+  def inverter(input: Bus): Bus = input map inverter
 
   def connect(input: Wire, output: Wire) {
     input addAction { () =>
@@ -38,11 +38,11 @@ trait LogicElements extends CircuitSimulation {
     output
   }
 
-  def and(ins: List[Wire]): Wire  = ins reduceLeft and
-  def or(ins: List[Wire]): Wire   = ins reduceLeft or
-  def xor(ins: List[Wire]): Wire  = ins reduceLeft xor
-  def nand(ins: List[Wire]): Wire = ins reduceLeft nand
-  def nor(ins: List[Wire]): Wire  = ins reduceLeft nor
+  def and(ins: Iterable[Wire]): Wire  = ins reduceLeft and
+  def or(ins: Iterable[Wire]): Wire   = ins reduceLeft or
+  def xor(ins: Iterable[Wire]): Wire  = ins reduceLeft xor
+  def nand(ins: Iterable[Wire]): Wire = ins reduceLeft nand
+  def nor(ins: Iterable[Wire]): Wire  = ins reduceLeft nor
 
   def and(a: Wire, b: Wire)  = binaryLogicGate(a, b) { _ && _ }
   def or(a: Wire, b: Wire)   = binaryLogicGate(a, b) { _ || _ }
@@ -50,11 +50,11 @@ trait LogicElements extends CircuitSimulation {
   def nand(a: Wire, b: Wire) = binaryLogicGate(a, b) { (x, y) => !(x && y) }
   def nor(a: Wire, b: Wire)  = binaryLogicGate(a, b) { (x, y) => !(x || y) }
 
-  def and(x: Bus, y: Bus): Bus  = new Bus(x zip y map tupled { and(_, _) })
-  def or(x: Bus, y: Bus): Bus   = new Bus(x zip y map tupled { or(_, _) })
-  def xor(x: Bus, y: Bus): Bus  = new Bus(x zip y map tupled { xor(_, _) })
-  def nand(x: Bus, y: Bus): Bus = new Bus(x zip y map tupled { nand(_, _) })
-  def nor(x: Bus, y: Bus): Bus  = new Bus(x zip y map tupled { nor(_, _) })
+  def and(x: Bus, y: Bus): Bus  = x zip y map tupled { and(_, _) }
+  def or(x: Bus, y: Bus): Bus   = x zip y map tupled { or(_, _) }
+  def xor(x: Bus, y: Bus): Bus  = x zip y map tupled { xor(_, _) }
+  def nand(x: Bus, y: Bus): Bus = x zip y map tupled { nand(_, _) }
+  def nor(x: Bus, y: Bus): Bus  = x zip y map tupled { nor(_, _) }
 }
 
 trait SequentialElements extends CircuitSimulation {
@@ -100,14 +100,14 @@ trait ArithmeticElements extends LogicElements {
     (sum, or(c1, c2))
   }
 
-  def multiBitAdder(a: Bus, b: Bus) = {
+  def multiBitAdder(a: Bus, b: Bus): (Bus, Wire) = {
     val (wires, overflow) = (a zip b).foldLeft((List[Wire](), Ground: Wire)) {
       case ((bus, carry), (a, b)) =>
         val (c1, cout) = fullAdder(a, b, carry)
-        (c1 :: bus, cout)
+        (bus :+ c1, cout)
     }
 
-    (new Bus(wires.reverse), overflow)
+    (wires, overflow)
   }
 
   def multiBitIncrementer(a: Bus) =
@@ -125,7 +125,7 @@ trait ControlFlowElements extends LogicElements {
     or(and(a, inverter(s)), and(b, s))
 
   def mux(a: Bus, b: Bus, selector: Wire): Bus =
-    new Bus(a zip b map tupled { mux(_, _, selector) })
+    a zip b map tupled { mux(_, _, selector) }
 
   def demux(a: Wire, s: Wire) =
     (and(a, inverter(s)), and(a, s))

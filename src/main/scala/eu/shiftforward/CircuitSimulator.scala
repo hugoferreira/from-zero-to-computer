@@ -18,4 +18,6 @@ abstract class CircuitSimulation extends Simulation {
 
     curtime = stopTime
   }
+
+  implicit def toBus(wires: Iterable[Wire]) = new Bus(wires)
 }

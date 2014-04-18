@@ -1,7 +1,5 @@
 package eu.shiftforward
 
-import java.io.File
-
 object FlipFlopTest extends App {
   new CircuitSimulation with SequentialElements {
     override val FlipFlopDelay: Int = 1
