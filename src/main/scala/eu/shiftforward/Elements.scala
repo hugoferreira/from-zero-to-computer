@@ -107,7 +107,7 @@ trait ArithmeticElements extends LogicElements {
         (c1 :: bus, cout)
     }
 
-    (new Bus(wires), overflow)
+    (new Bus(wires.reverse), overflow)
   }
 
   def multiBitIncrementer(a: Bus) =
