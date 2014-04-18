@@ -101,16 +101,13 @@ trait ArithmeticElements extends LogicElements {
   }
 
   def multiBitAdder(a: Bus, b: Bus) = {
-    val sum = new Bus(a.size)
-    val overflow = new Wire
+    val (wires, overflow) = (a zip b).foldLeft((List[Wire](), Ground: Wire)) {
+      case ((bus, carry), (a, b)) =>
+        val (c1, cout) = fullAdder(a, b, carry)
+        (c1 :: bus, cout)
+    }
 
-    connect((a zip b zip sum).foldLeft(Ground: Wire) { case (carry, ((a, b), c)) =>
-      val (c1, cout) = fullAdder(a, b, carry)
-      connect(c1, c)
-      cout
-    }, overflow)
-
-    (sum, overflow)
+    (new Bus(wires), overflow)
   }
 
   def multiBitIncrementer(a: Bus) =
