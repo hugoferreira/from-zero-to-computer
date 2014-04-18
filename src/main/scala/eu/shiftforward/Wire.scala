@@ -48,7 +48,7 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire]
   def getSignal = wires.map(_.getSignal)
 
   def setSignal(ss: Iterable[Boolean]) {
-    wires zip ss foreach { case (w, s) => w ~> s }
+    (wires, ss).zipped foreach { _ ~> _ }
   }
 
   def setSignal(s: Int) {

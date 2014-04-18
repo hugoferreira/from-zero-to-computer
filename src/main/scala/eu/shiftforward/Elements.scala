@@ -22,7 +22,7 @@ trait LogicElements extends CircuitSimulation {
   }
 
   def connect(input: Bus, output: Bus) {
-    input zip output foreach tupled { connect(_, _) }
+    (input, output).zipped foreach connect
   }
 
   def binaryLogicGate(a: Wire, b: Wire)(op: (Boolean, Boolean) => Boolean) = {
@@ -50,11 +50,11 @@ trait LogicElements extends CircuitSimulation {
   def nand(a: Wire, b: Wire) = binaryLogicGate(a, b) { (x, y) => !(x && y) }
   def nor(a: Wire, b: Wire)  = binaryLogicGate(a, b) { (x, y) => !(x || y) }
 
-  def and(x: Bus, y: Bus): Bus  = x zip y map tupled { and(_, _) }
-  def or(x: Bus, y: Bus): Bus   = x zip y map tupled { or(_, _) }
-  def xor(x: Bus, y: Bus): Bus  = x zip y map tupled { xor(_, _) }
-  def nand(x: Bus, y: Bus): Bus = x zip y map tupled { nand(_, _) }
-  def nor(x: Bus, y: Bus): Bus  = x zip y map tupled { nor(_, _) }
+  def and(x: Bus, y: Bus): Bus  = (x, y).zipped map and
+  def or(x: Bus, y: Bus): Bus   = (x, y).zipped map or
+  def xor(x: Bus, y: Bus): Bus  = (x, y).zipped map xor
+  def nand(x: Bus, y: Bus): Bus = (x, y).zipped map nand
+  def nor(x: Bus, y: Bus): Bus  = (x, y).zipped map nor
 }
 
 trait SequentialElements extends CircuitSimulation {
@@ -125,7 +125,7 @@ trait ControlFlowElements extends LogicElements {
     or(and(a, inverter(s)), and(b, s))
 
   def mux(a: Bus, b: Bus, selector: Wire): Bus =
-    a zip b map tupled { mux(_, _, selector) }
+    (a, b).zipped map { mux(_, _, selector) }
 
   def demux(a: Wire, s: Wire) =
     (and(a, inverter(s)), and(a, s))
