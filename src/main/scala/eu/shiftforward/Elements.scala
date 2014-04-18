@@ -1,7 +1,7 @@
 package eu.shiftforward
 
 trait LogicElements extends CircuitSimulation {
-  def inverter(input: Wire) = {
+  def inverter(input: Wire): Wire = {
     val output = new Wire
     input addAction { () =>
       val inputSig = input.getSignal
@@ -10,11 +10,17 @@ trait LogicElements extends CircuitSimulation {
     output
   }
 
+  def inverter(input: Bus): Bus = new Bus(input map inverter)
+
   def connect(input: Wire, output: Wire) {
     input addAction { () =>
       val inputSig = input.getSignal
       schedule(InverterDelay) { output ~> inputSig }
     }
+  }
+
+  def connect(input: Bus, output: Bus) {
+    (input zip output).foreach { case (i, o) => connect(i, o) }
   }
 
   def associativeLogicGate(ins: List[Wire])(op: (Boolean, Boolean) => Boolean) = {
@@ -52,6 +58,12 @@ trait LogicElements extends CircuitSimulation {
   def xor(a: Wire, b: Wire)  = binaryLogicGate(a, b) { _ ^ _ }
   def nand(a: Wire, b: Wire) = binaryLogicGate(a, b) { (x, y) => !(x && y) }
   def nor(a: Wire, b: Wire)  = binaryLogicGate(a, b) { (x, y) => !(x || y) }
+
+  def and(x: Bus, y: Bus)    = new Bus((x zip y) map { case (a, b) => binaryLogicGate(a, b) { _ && _ } })
+  def or(x: Bus, y: Bus)     = new Bus((x zip y) map { case (a, b) => binaryLogicGate(a, b) { _ || _ } })
+  def xor(x: Bus, y: Bus)    = new Bus((x zip y) map { case (a, b) => binaryLogicGate(a, b) { _ ^ _ } })
+  def nand(x: Bus, y: Bus)   = new Bus((x zip y) map { case (a, b) => binaryLogicGate(a, b) { (x, y) => !(x && y) } })
+  def nor(x: Bus, y: Bus)    = new Bus((x zip y) map { case (a, b) => binaryLogicGate(a, b) { (x, y) => !(x || y) } })
 }
 
 trait SequentialElements extends CircuitSimulation {
@@ -111,9 +123,9 @@ trait ArithmeticElements extends LogicElements {
   }
 
   def multiBitIncrementer(a: Bus) =
-    multiBitAdder(a, constant8(a.size)(0x01))
+    multiBitAdder(a, constant(a.size)(0x01))
 
-  lazy val constant8 = (width: Int) => (c: Int) => {
+  lazy val constant = (width: Int) => (c: Int) => {
     val bus = new Bus(width)
     bus.setSignal(c)
     bus
@@ -121,10 +133,10 @@ trait ArithmeticElements extends LogicElements {
 }
 
 trait ControlFlowElements extends LogicElements {
-  def mux(a: Wire, b: Wire, s: Wire) =
+  def mux(a: Wire, b: Wire, s: Wire): Wire =
     or(and(a, inverter(s)), and(b, s))
 
-  def multiBitMultiplexer(a: Bus, b: Bus, selector: Wire) =
+  def mux(a: Bus, b: Bus, selector: Wire): Bus =
     new Bus((a zip b).map { case (a, b) => mux(a, b, selector) })
 
   def demux(a: Wire, s: Wire) =

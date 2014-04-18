@@ -122,15 +122,15 @@ object BusTest extends App {
   new CircuitSimulation with LogicElements {
     val a, b, c, d = new Wire
     val x, y, z, k = new Wire
-    val busIn  = new Bus(a, b, c, d)
-    val busOut = new Bus(x, y, z, k)
+    val busIn  = new Bus(d, c, b, a)
+    val busOut = new Bus(k, z, y, x)
+
+    connect(inverter(busIn), busOut)
 
     implicit val probes = List(("a", a), ("b", b), ("c", c), ("d", d), ("x", x), ("y", y), ("z", z), ("k", k), ("busin", busIn), ("busout", busOut))
     implicit val tracer = new ConsoleTracer
 
     tracer.setHeader(probes.map(_._1))
-
-    busIn zip busOut foreach { case (i, o) => connect(inverter(i), o) }
 
     run(10)
 
@@ -184,7 +184,7 @@ object EightBitMultiplexer extends App {
   new CircuitSimulation with LogicElements with ControlFlowElements {
     val busA, busB = new Bus(8)
     val selector = new Wire
-    val busOut = multiBitMultiplexer(busA, busB, selector)
+    val busOut = mux(busA, busB, selector)
 
     implicit val probes = List(("bus a (in)", busA), ("bus b (in)", busB), ("sel", selector), ("sum (output)", busOut))
     implicit val tracer = new ConsoleTracer
