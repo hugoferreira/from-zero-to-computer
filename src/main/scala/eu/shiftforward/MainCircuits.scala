@@ -14,16 +14,16 @@ object FlipFlopTest extends App {
 
     run(3)
 
-    set ~> true
+    set <~ true
     run(3)
 
-    set ~> false
+    set <~ false
     run(3)
 
-    reset ~> true
+    reset <~ true
     run(3)
 
-    reset ~> false
+    reset <~ false
     run(3)
   }
 }
@@ -40,13 +40,13 @@ object SumTest extends App {
 
     run(2)
 
-    input1 ~> true
+    input1 <~ true
     run(2)
 
-    input2 ~> true
+    input2 <~ true
     run(2)
 
-    cin ~> true
+    cin <~ true
     run(2)
 
     tracer.close()
@@ -83,10 +83,10 @@ object MuxTest extends App {
 
     run(10)
 
-    a ~> true
+    a <~ true
     run(10)
 
-    s ~> true
+    s <~ true
     run(10)
   }
 
@@ -108,10 +108,10 @@ object DeMuxTest extends App {
 
     run(10)
 
-    a ~> true
+    a <~ true
     run(10)
 
-    s ~> true
+    s <~ true
     run(10)
   }
 }
@@ -123,7 +123,7 @@ object BusTest extends App {
     val busIn  = new Bus(d, c, b, a)
     val busOut = new Bus(k, z, y, x)
 
-    connect(inverter(busIn), busOut)
+    inverter(busIn) ~> busOut
 
     implicit val probes = List(("a", a), ("b", b), ("c", c), ("d", d), ("x", x), ("y", y), ("z", z), ("k", k), ("busin", busIn), ("busout", busOut))
     implicit val tracer = new ConsoleTracer
@@ -132,7 +132,7 @@ object BusTest extends App {
 
     run(10)
 
-    a ~> true
+    a <~ true
     run(10)
 
     busIn setSignal 0xF
@@ -193,7 +193,7 @@ object EightBitMultiplexer extends App {
     busA setSignal 0xFA
     run(1)
 
-    selector ~> true
+    selector <~ true
     run(1)
 
     busB setSignal 0xFF

@@ -8,7 +8,7 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
       val inputB = b.getSignal
       val selector = s.getSignal
       schedule(GenericGateDelay) {
-        output ~> (if (selector) inputB else inputA)
+        output <~ (if (selector) inputB else inputA)
       }
     }
 
@@ -26,8 +26,8 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
       val input = a.getSignal
       val selector = s.getSignal
       schedule(GenericGateDelay) {
-        outA ~> (if (!selector) input else false)
-        outB ~> (if (selector)  input else false)
+        outA <~ (if (!selector) input else false)
+        outB <~ (if (selector)  input else false)
       }
     }
 
@@ -55,8 +55,8 @@ trait OptimizedArithmeticElements extends ArithmeticElements {
       }
 
       schedule(GenericGateDelay) {
-        sum ~> outSum
-        cout ~> outCarry
+        sum <~ outSum
+        cout <~ outCarry
       }
     }
 

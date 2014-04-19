@@ -2,7 +2,7 @@ package eu.shiftforward
 
 sealed trait Connector[T] {
   def getSignal: T
-  def ~>(s: T) = setSignal(s)
+  def <~(s: T) = setSignal(s)
   def setSignal(s: T)
   def addAction(a: Simulation#Action)
 }
@@ -24,6 +24,9 @@ class Wire extends Connector[Boolean] {
     actions ::= a
     a()
   }
+
+  def connectTo(w: Wire) { addAction { () => w <~ getSignal } }
+  def ~>(w: Wire) { connectTo(w) }
 }
 
 object Ground extends Wire {
@@ -48,18 +51,21 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Iterable[Wire]
   def getSignal = wires.map(_.getSignal)
 
   def setSignal(ss: Iterable[Boolean]) {
-    (wires, ss).zipped foreach { _ ~> _ }
+    (wires, ss).zipped foreach { _ <~ _ }
   }
 
   def setSignal(s: Int) {
     wires zip s.toBinaryString.reverse foreach {
-      case (sig, c: Char) => sig ~> (c == '1')
+      case (sig, c: Char) => sig <~ (c == '1')
     }
   }
 
   def addAction(a: Simulation#Action) {
     wires foreach { _ addAction a }
   }
+
+  def connectTo(b: Bus) { (this, b).zipped foreach { _ connectTo _ } }
+  def ~>(w: Bus) { connectTo(w) }
 
   override def toString() = wires.map(s => if (s.getSignal) 1 else 0).mkString.reverse
 }
