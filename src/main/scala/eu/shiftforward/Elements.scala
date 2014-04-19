@@ -47,11 +47,37 @@ trait LogicElements extends CircuitSimulation {
 }
 
 trait SequentialElements extends CircuitSimulation {
-  def clock(out: Wire, interval: Int = 1, signal: Boolean = false) {
-    schedule(interval) {
-      out <~ !signal
-      clock(out, interval, !signal)
+  def clock(interval: Int = 1, signal: Boolean = false) = {
+    val out = new Wire
+    schedule(0) {
+      out <~ signal
+      ticktack(out, interval, signal)
     }
+    out
+  }
+
+  private def ticktack(out: Wire, interval: Int = 1, signal: Boolean = false) {
+    schedule(interval) {
+      out <~ signal
+      ticktack(out, interval, !signal)
+    }
+  }
+
+  def dff(in: Wire, initState: Boolean = false)(implicit clock: Wire) = {
+    var state = initState
+    val out = new Wire
+
+    def action() {
+      if (clock.getSignal) {
+        val inputA = in.getSignal
+        out <~ state
+        state = inputA
+      }
+    }
+
+    clock addAction action
+
+    out
   }
 
   def flipflop(set: Wire, reset: Wire, initState: Boolean = false) = {
@@ -118,4 +144,15 @@ trait ControlFlowElements extends LogicElements {
 
   def demux(a: Wire, s: Wire) =
     (and(a, inverter(s)), and(a, s))
+}
+
+trait Memory extends SequentialElements with ControlFlowElements {
+  def register(in: Wire, load: Wire)(implicit clock: Wire) = {
+    val muxOut = new Wire
+    val out = dff(muxOut)
+    mux(out, in, load) ~> muxOut
+    muxOut
+  }
+
+  def register(in: Bus, load: Wire)(implicit clock: Wire): Bus = in map { register(_, load) }
 }

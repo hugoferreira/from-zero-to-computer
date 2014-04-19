@@ -1,5 +1,57 @@
 package eu.shiftforward
 
+object DffTest extends App {
+  new CircuitSimulation with SequentialElements {
+    implicit val clk = clock(1)
+    val in = new Wire
+    val out = dff(in)
+
+    implicit val tracer = new ConsoleTracer
+    tracer.setProbes(List(("in", in), ("out", out), ("clk", clk)))
+
+    run(3)
+
+    in <~ true
+    run(3)
+
+    in <~ false
+    run(3)
+
+    in <~ true
+    run(3)
+
+    in <~ false
+    run(3)
+  }
+}
+
+object RegisterTest extends App {
+  new CircuitSimulation with Memory {
+    implicit val clk = clock(1)
+    val in, load = new Wire
+    val out = register(in, load)
+
+    implicit val tracer = new ConsoleTracer
+    tracer.setProbes(List(("in", in), ("load", load), ("out", out), ("clk", clk)))
+
+    run(1)
+
+    in <~ true
+    run(1)
+
+    in <~ false
+    run(1)
+
+    load <~ true
+    in <~ true
+    run(1)
+
+    load <~ false
+    in <~ false
+    run(3)
+  }
+}
+
 object FlipFlopTest extends App {
   new CircuitSimulation with SequentialElements {
     override val FlipFlopDelay: Int = 1
@@ -7,10 +59,8 @@ object FlipFlopTest extends App {
     val set, reset = new Wire
     val (out, cout) = flipflop(set, reset)
 
-    implicit val probes = List(("set", set), ("reset", reset), ("out", out), ("cout", cout))
     implicit val tracer = new ConsoleTracer
-
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes(List(("set", set), ("reset", reset), ("out", out), ("cout", cout)))
 
     run(3)
 
@@ -33,10 +83,8 @@ object SumTest extends App {
     val input1, input2, cin = new Wire
     val (sum, carry) = fullAdder(input1, input2, cin)
 
-    implicit val probes = List(("a", input1), ("b", input2), ("cin", cin), ("sum", sum), ("carry", carry))
     implicit val tracer = new ConsoleTracer
-
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes(List(("a", input1), ("b", input2), ("cin", cin), ("sum", sum), ("carry", carry)))
 
     run(2)
 
@@ -55,19 +103,16 @@ object SumTest extends App {
 
 object ClockTest extends App {
   new CircuitSimulation with LogicElements with SequentialElements {
-    val clk, clk2 = new Wire
-
-    clock(clk)
-    clock(clk2, 2)
+    val clk  = clock(1)
+    val clk2 = clock(2)
+    val clk3 = clock(3)
 
     val comb = and(clk, clk2)
 
-    implicit val probes = List(("clk1", clk), ("clk2", clk2), ("and", comb))
     implicit val tracer = new ConsoleTracer
+    tracer.setProbes(List(("clk1", clk), ("clk2", clk2), ("clk3", clk3), ("and", comb)))
 
-    tracer.setHeader(probes.map(_._1))
-
-    run(10)
+    run(20)
   }
 }
 
@@ -76,10 +121,8 @@ object MuxTest extends App {
     val a, b, s = new Wire
     val out = mux(a, b, s)
 
-    implicit val probes = List(("a", a), ("b", b), ("s", s), ("out", out))
     implicit val tracer = new ConsoleTracer
-
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes(List(("a", a), ("b", b), ("s", s), ("out", out)))
 
     run(10)
 
@@ -101,10 +144,8 @@ object DeMuxTest extends App {
     val a, s = new Wire
     val (outA, outB) = demux(a, s)
 
-    implicit val probes = List(("a", a), ("s", s), ("outA", outA), ("outB", outB))
     implicit val tracer = new ConsoleTracer
-
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes(List(("a", a), ("s", s), ("outA", outA), ("outB", outB)))
 
     run(10)
 
@@ -118,24 +159,21 @@ object DeMuxTest extends App {
 
 object BusTest extends App {
   new CircuitSimulation with LogicElements {
-    val a, b, c, d = new Wire
-    val x, y, z, k = new Wire
-    val busIn  = new Bus(d, c, b, a)
-    val busOut = new Bus(k, z, y, x)
+    val in, out = new Bus(4)
 
-    inverter(busIn) ~> busOut
+    inverter(in) ~> out
 
-    implicit val probes = List(("a", a), ("b", b), ("c", c), ("d", d), ("x", x), ("y", y), ("z", z), ("k", k), ("busin", busIn), ("busout", busOut))
     implicit val tracer = new ConsoleTracer
-
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes(List(("a", in(3)),  ("b", in(2)),  ("c", in(1)),  ("d", in(0)),
+                          ("x", out(3)), ("y", out(2)), ("z", out(1)), ("k", out(0)),
+                          ("busin", in), ("busout", out)))
 
     run(10)
 
-    a <~ true
+    in(3) <~ true
     run(10)
 
-    busIn setSignal 0xF
+    in setSignal 0xF
     run(10)
   }
 }
@@ -145,9 +183,8 @@ object EightBitAdder extends App {
     val busA, busB = new Bus(8)
     val (busOut, overflow) = multiBitAdder(busA, busB)
 
-    implicit val probes = List(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("of", overflow))
     implicit val tracer = new ConsoleTracer
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes(List(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("of", overflow)))
 
     run(1)
 
@@ -165,9 +202,8 @@ object EightBitIncrementer extends App {
     val busA = new Bus(8)
     val (busOut, overflow) = multiBitIncrementer(busA)
 
-    implicit val probes = List(("bus a (in)", busA), ("sum (output)", busOut), ("of", overflow))
     implicit val tracer = new ConsoleTracer
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes(List(("bus a (in)", busA), ("sum (output)", busOut), ("of", overflow)))
 
     run(1)
 
@@ -184,9 +220,8 @@ object EightBitMultiplexer extends App {
     val selector = new Wire
     val busOut = mux(busA, busB, selector)
 
-    implicit val probes = List(("bus a (in)", busA), ("bus b (in)", busB), ("sel", selector), ("sum (output)", busOut))
     implicit val tracer = new ConsoleTracer
-    tracer.setHeader(probes.map(_._1))
+    tracer.setProbes( List(("bus a (in)", busA), ("bus b (in)", busB), ("sel", selector), ("sum (output)", busOut)))
 
     run(1)
 

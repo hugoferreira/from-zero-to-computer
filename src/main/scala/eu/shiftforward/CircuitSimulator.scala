@@ -9,11 +9,11 @@ abstract class CircuitSimulation extends Simulation {
     connector addAction { () => println(name + " @ " + currentTime + " = " + connector.getSignal) }
   }
 
-  def run(cycles: Int = 1)(implicit tracer: Tracer = DummyTracer, probes: List[(String, Connector[_])]) {
+  def run(cycles: Int = 1)(implicit tracer: Tracer = DummyTracer) {
     val stopTime = currentTime + cycles
     while (hasNext && currentTime < stopTime) {
       next()
-      tracer.trace(currentTime, probes.map(_._2))
+      tracer.trace(currentTime)
     }
 
     curtime = stopTime
