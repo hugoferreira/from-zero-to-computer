@@ -7,7 +7,7 @@ object DffTest extends App {
     val out = dff(in)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("in", in), ("out", out), ("clk", clk)))
+    tracer.setProbes(("in", in), ("out", out), ("clk", clk))
 
     run(3)
 
@@ -32,7 +32,7 @@ object RegisterTest extends App {
     val out = register(in, load)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("in", in), ("load", load), ("out", out), ("clk", clk)))
+    tracer.setProbes(("in", in), ("load", load), ("out", out), ("clk", clk))
 
     run(1)
 
@@ -60,7 +60,7 @@ object FlipFlopTest extends App {
     val (out, cout) = flipflop(set, reset)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("set", set), ("reset", reset), ("out", out), ("cout", cout)))
+    tracer.setProbes(("set", set), ("reset", reset), ("out", out), ("cout", cout))
 
     run(3)
 
@@ -84,7 +84,7 @@ object SumTest extends App {
     val (sum, carry) = fullAdder(input1, input2, cin)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("a", input1), ("b", input2), ("cin", cin), ("sum", sum), ("carry", carry)))
+    tracer.setProbes(("a", input1), ("b", input2), ("cin", cin), ("sum", sum), ("carry", carry))
 
     run(2)
 
@@ -110,7 +110,7 @@ object ClockTest extends App {
     val comb = and(clk, clk2)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("clk1", clk), ("clk2", clk2), ("clk3", clk3), ("and", comb)))
+    tracer.setProbes(("clk1", clk), ("clk2", clk2), ("clk3", clk3), ("and", comb))
 
     run(20)
   }
@@ -122,7 +122,7 @@ object MuxTest extends App {
     val out = mux(a, b, s)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("a", a), ("b", b), ("s", s), ("out", out)))
+    tracer.setProbes(("a", a), ("b", b), ("s", s), ("out", out))
 
     run(10)
 
@@ -145,7 +145,7 @@ object DeMuxTest extends App {
     val (outA, outB) = demux(a, s)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("a", a), ("s", s), ("outA", outA), ("outB", outB)))
+    tracer.setProbes(("a", a), ("s", s), ("outA", outA), ("outB", outB))
 
     run(10)
 
@@ -164,9 +164,9 @@ object BusTest extends App {
     inverter(in) ~> out
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("a", in(3)),  ("b", in(2)),  ("c", in(1)),  ("d", in(0)),
-                          ("x", out(3)), ("y", out(2)), ("z", out(1)), ("k", out(0)),
-                          ("busin", in), ("busout", out)))
+    tracer.setProbes(("a", in(3)),  ("b", in(2)),  ("c", in(1)),  ("d", in(0)),
+                     ("x", out(3)), ("y", out(2)), ("z", out(1)), ("k", out(0)),
+                     ("busin", in), ("busout", out))
 
     run(10)
 
@@ -184,7 +184,7 @@ object EightBitAdder extends App {
     val (busOut, overflow) = multiBitAdder(busA, busB)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("of", overflow)))
+    tracer.setProbes(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("of", overflow))
 
     run(1)
 
@@ -203,7 +203,7 @@ object EightBitIncrementer extends App {
     val (busOut, overflow) = multiBitIncrementer(busA)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes(List(("bus a (in)", busA), ("sum (output)", busOut), ("of", overflow)))
+    tracer.setProbes(("bus a (in)", busA), ("sum (output)", busOut), ("of", overflow))
 
     run(1)
 
@@ -221,7 +221,7 @@ object EightBitMultiplexer extends App {
     val busOut = mux(busA, busB, selector)
 
     implicit val tracer = new ConsoleTracer
-    tracer.setProbes( List(("bus a (in)", busA), ("bus b (in)", busB), ("sel", selector), ("sum (output)", busOut)))
+    tracer.setProbes(("bus a (in)", busA), ("bus b (in)", busB), ("sel", selector), ("sum (output)", busOut))
 
     run(1)
 

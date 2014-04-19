@@ -3,13 +3,13 @@ package eu.shiftforward
 trait Tracer {
   type Probe = (String, Connector[_])
 
-  def setProbes(probes: List[Probe])
+  def setProbes(probes: Probe*)
   def trace(currentTime: Int)
   def close() { }
 }
 
 object DummyTracer extends Tracer {
-  def setProbes(probes: List[Probe]) { }
+  def setProbes(probes: Probe*) { }
   def trace(currentTime: Int) { }
 }
 
@@ -24,8 +24,8 @@ class ConsoleTracer extends Tracer {
     case (true, false)  => "┌─┘"
   }
 
-  def setProbes(probes: List[Probe]) {
-    this.probes = probes
+  def setProbes(probes: Probe*) {
+    this.probes = probes.toList
     println("time\t" + probes.map(_._1).mkString("\t"))
   }
 
@@ -54,8 +54,8 @@ class VCDTracer(file: java.io.File) extends Tracer {
 
   val symbolList = (33 to 126).map(_.asInstanceOf[Char].toString).toList
 
-  def setProbes(probes: List[Probe]) {
-    this.probes = probes
+  def setProbes(probes: Probe*) {
+    this.probes = probes.toList
     probes.map(_._1).zip(symbolList).map { case (probe, symbol) => "$var reg 1 " + symbol + " " + probe + " $end" } foreach pw.println
     pw.println("$enddefinitions $end")
   }
