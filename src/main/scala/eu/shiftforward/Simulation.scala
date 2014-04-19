@@ -5,9 +5,7 @@ import scala.collection.immutable.Queue
 
 abstract class Simulation {
   type Action = () => Unit
-  type Agenda = SortedMap[Int, Queue[WorkItem]]
-
-  case class WorkItem(time: Int, action: Action)
+  type Agenda = SortedMap[Int, Queue[Action]]
 
   protected var curtime = 0
   def currentTime: Int = curtime
@@ -16,21 +14,17 @@ abstract class Simulation {
 
   def schedule(delay: Int = 0)(block: => Unit) {
     val time = currentTime + delay
-    val item = WorkItem(time, () => block)
-    agenda += (time -> agenda.getOrElse(time, Queue()).enqueue(item))
+    agenda += (time -> agenda.getOrElse(time, Queue()).enqueue(() => block))
   }
 
-  protected def next() {
+  protected def step() {
     if (!agenda.isEmpty) {
-      val starttime = curtime
+      curtime = agenda.head._1
 
-      // We have to ensure the task queue for this time slice
-      // is really flushed due to 0 delay schedules
-      while(starttime == curtime && !agenda.isEmpty) {
-        val item = agenda.head
-        curtime = item._1
+      while(agenda.contains(curtime)) {
+        val actions = agenda(curtime)
         agenda -= curtime
-        processActions(item._2.map(_.action))
+        processActions(actions)
       }
     }
   }
@@ -44,7 +38,7 @@ abstract class Simulation {
       println("*** simulation started, time = " + currentTime + " ***")
     }
 
-    while (!agenda.isEmpty) next()
+    while (!agenda.isEmpty) step()
   }
 }
 

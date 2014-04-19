@@ -47,11 +47,10 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Seq[Wire] {
   def this(wires: Iterable[Wire]) = this(wires.toSeq : _*)
 
   def iterator: Iterator[Wire] = wires.iterator
-
-  def getSignal = wires.map(_.getSignal)
-
   def length = wires.length
   def apply(idx: Int) = wires(idx)
+
+  def getSignal = wires.map(_.getSignal)
 
   def setSignal(ss: Iterable[Boolean]) {
     (wires, ss).zipped foreach { _ <~ _ }

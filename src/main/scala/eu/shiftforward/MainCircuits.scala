@@ -48,7 +48,10 @@ object RegisterTest extends App {
 
     load <~ false
     in <~ false
-    run(3)
+    run(5)
+
+    load <~ true
+    run(5)
   }
 }
 

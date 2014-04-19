@@ -12,7 +12,7 @@ abstract class CircuitSimulation extends Simulation {
   def run(cycles: Int = 1)(implicit tracer: Tracer = DummyTracer) {
     val stopTime = currentTime + cycles
     while (hasNext && currentTime < stopTime) {
-      next()
+      step()
       tracer.trace(currentTime)
     }
 
