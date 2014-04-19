@@ -25,7 +25,7 @@ object DffTest extends App {
   }
 }
 
-object RegisterTest extends App {
+object OneBitRegisterTest extends App {
   new CircuitSimulation with Memory {
     implicit val clk = clock(1)
     val in, load = new Wire
@@ -51,6 +51,34 @@ object RegisterTest extends App {
     run(5)
 
     load <~ true
+    run(5)
+  }
+}
+
+object RegisterTest extends App {
+  new CircuitSimulation with Memory {
+    implicit val clk = clock(1)
+    val load = new Wire
+    val in   = new Bus(8)
+    val out  = register(in, load)
+
+    implicit val tracer = new ConsoleTracer
+    tracer.setProbes(("in", in), ("load", load), ("out", out), ("clk", clk))
+
+    run(1)
+
+    in   <~ 0x0F
+    run(1)
+
+    load <~ true
+    run(2)
+
+    load <~ false
+    in   <~ 0x00
+    run(5)
+
+    load <~ true
+    in   <~ 0xF0
     run(5)
   }
 }

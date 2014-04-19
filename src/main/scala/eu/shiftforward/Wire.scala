@@ -56,8 +56,10 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Seq[Wire] {
     (wires, ss).zipped foreach { _ <~ _ }
   }
 
+  def <~(s: Int) = setSignal(s)
+
   def setSignal(s: Int) {
-    wires zip s.toBinaryString.reverse foreach {
+    wires zip s.toBinaryString.reverse.padTo(wires.size, '0') foreach {
       case (sig, c) => sig <~ (c == '1')
     }
   }

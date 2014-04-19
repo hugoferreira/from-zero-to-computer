@@ -68,7 +68,7 @@ trait SequentialElements extends CircuitSimulation {
     def action() {
       val clockIn = clock.getSignal
       val inputA  = in.getSignal
-      schedule(0) {
+      schedule() {
         if (clockIn) {
           state = inputA
           out <~ state
@@ -148,14 +148,14 @@ trait ControlFlowElements extends LogicElements {
 }
 
 trait Memory extends SequentialElements with ControlFlowElements {
-  def register(in: Wire, load: Wire)(implicit clock: Wire) = {
+  /* def register(in: Wire, load: Wire)(implicit clock: Wire) = {
     val muxOut = new Wire
     val out = dff(muxOut)
     mux(out, in, load) ~> muxOut
     out
-  }
+  } */
 
-  /* def register(in: Wire, load: Wire)(implicit clock: Wire) = {
+  def register(in: Wire, load: Wire)(implicit clock: Wire) = {
     var state = false
     val out = new Wire
 
@@ -174,7 +174,7 @@ trait Memory extends SequentialElements with ControlFlowElements {
     clock addAction action
 
     out
-  } */
+  }
 
   def register(in: Bus, load: Wire)(implicit clock: Wire): Bus = in map { register(_, load) }
 }
