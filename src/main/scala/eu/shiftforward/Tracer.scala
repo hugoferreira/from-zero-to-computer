@@ -34,7 +34,7 @@ class ConsoleTracer extends Tracer {
   def trace(currentTime: Int) {
     val signals = currentValues.map(_.getSignal)
     val values  = if (!lastValues.isEmpty) lastValues.zip(signals).map {
-      case (h: Boolean, s: Boolean) => prettyPrintSignal(h, s)
+      case (h: Boolean, s: Boolean)  => prettyPrintSignal(h, s)
       case (_, b: Iterable[Boolean]) => b.map(s => if (s) 1 else 0).mkString.reverse
     } else signals.map {
       case s: Boolean => prettyPrintSignal(s, s)
@@ -46,18 +46,29 @@ class ConsoleTracer extends Tracer {
   }
 }
 
-class VCDTracer(file: java.io.File) extends Tracer {
+class VCDTracer(file: java.io.File, secondaryTracer: Tracer = new ConsoleTracer) extends Tracer {
   var probes: List[Probe] = List()
 
   val pw = new java.io.PrintWriter(file)
-  pw.println("$date\n  " + new java.util.Date().toString + "\n$end\n$timescale\n	1ms\n$end")
+  val date = new java.util.Date().toString
+  pw.println(s"""$$date
+                |  $date
+                |$$end
+                |$$timescale
+                |  1ms
+                |$$end""".stripMargin)
 
   val symbolList = (33 to 126).map(_.asInstanceOf[Char].toString).toList
 
-  def setProbes(probes: Probe*) {
-    this.probes = probes.toList
-    probes.map(_._1).zip(symbolList).map { case (probe, symbol) => "$var reg 1 " + symbol + " " + probe + " $end" } foreach pw.println
+  def setProbes(ps: Probe*) {
+    this.probes = ps.toList
+    probes.zip(symbolList).map {
+      case ((id, conn: Bus),  symbol) => s"$$var reg ${conn.size} $symbol $id [${conn.size - 1}:0] $$end"
+      case ((id,    _: Wire), symbol) => s"$$var reg 1 $symbol $id $$end"
+    } foreach pw.println
     pw.println("$enddefinitions $end")
+
+    secondaryTracer.setProbes(ps: _*)
   }
 
   def currentValues = probes.map(_._2)
@@ -66,11 +77,16 @@ class VCDTracer(file: java.io.File) extends Tracer {
     pw.println("#" + currentTime)
     currentValues.zip(symbolList).map {
       case (v: Wire, s) => (if (v.getSignal) 1 else 0) + s
-      case (v: Bus, s) => v.toString + s
+      case (v: Bus, s)  => s"b$v $s"
     } foreach pw.println
+
+    secondaryTracer.trace(currentTime)
   }
 
   override def close() {
+    pw.flush()
     pw.close()
+
+    secondaryTracer.close()
   }
 }
