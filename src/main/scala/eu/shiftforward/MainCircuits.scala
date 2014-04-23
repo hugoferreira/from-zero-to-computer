@@ -1,5 +1,7 @@
 package eu.shiftforward
 
+import java.io.File
+
 object DffTest extends App {
   new CircuitSimulation with SequentialElements {
     implicit val clk = clock(1)
@@ -80,6 +82,37 @@ object RegisterTest extends App {
     load <~ true
     in   <~ 0xF0
     run(5)
+  }
+}
+
+object RegisterBasedALUTest extends App {
+  new CircuitSimulation with ArithmeticElements with Memory {
+    implicit val clk = clock(1)
+    val loadA, loadB, loadSum = new Wire
+    val a, b = new Bus(8)
+    val r1 = register(a, loadA)
+    val r2 = register(b, loadB)
+    val (sum, _) = multiBitAdder(r1, r2)
+    val bta = and(r1, r2)
+    val r3 = register(sum, loadSum)
+    val r4 = register(bta, loadSum)
+
+    implicit val tracer = new VCDTracer(new File("/tmp/output.vcd"))
+    tracer.setProbes(("a", a), ("r1", r1), ("b", b), ("r2", r2), ("r3", sum), ("r4", bta), ("clk", clk), ("loadA", loadA), ("loadB", loadB), ("load", loadSum))
+
+    a       <~ 0x01
+    b       <~ 0x01
+    run(5)
+
+    loadA   <~ true
+    loadB   <~ true
+    loadSum <~ false
+    run(5)
+
+    loadSum <~ true
+    run(5)
+
+    tracer.close()
   }
 }
 
@@ -251,8 +284,8 @@ object EightBitMultiplexer extends App {
     val selector = new Wire
     val busOut = mux(busA, busB, selector)
 
-    implicit val tracer = new ConsoleTracer
-    tracer.setProbes(("bus a (in)", busA), ("bus b (in)", busB), ("sel", selector), ("sum (output)", busOut))
+    implicit val tracer = new VCDTracer(new File("/tmp/output.vcd"))
+    tracer.setProbes(("busA", busA), ("busB", busB), ("sel", selector), ("sum", busOut))
 
     run(1)
 
@@ -264,5 +297,7 @@ object EightBitMultiplexer extends App {
 
     busB setSignal 0xFF
     run(1)
+
+    tracer.close()
   }
 }
