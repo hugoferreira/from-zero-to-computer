@@ -242,6 +242,25 @@ object BusTest extends App {
   }
 }
 
+object BitShuffleTest extends App {
+  new CircuitSimulation with LogicElements {
+    val in = new Bus(4)
+    val rol = rotateLeft(in)
+    val ror = rotateRight(in)
+    val shl = shiftLeft(in)
+    val shr = shiftRight(in)
+
+    implicit val tracer = new ConsoleTracer
+    tracer.setProbes(("in", in), ("rotL", rol), ("rotR", ror), ("shiftL", shl), ("shiftR", shr))
+    run(10)
+
+    (1 to 10).foreach { i =>
+        in setSignal i
+        run(1)
+    }
+  }
+}
+
 object EightBitAdder extends App {
   new CircuitSimulation with LogicElements with ArithmeticElements with SequentialElements {
     val busA, busB = new Bus(8)

@@ -3,16 +3,20 @@ package eu.shiftforward
 import scala.Function.tupled
 
 trait LogicElements extends CircuitSimulation {
-  def inverter(input: Wire): Wire = {
+  def unaryLogicGate(input: Wire)(op: Boolean => Boolean) = {
     val output = new Wire
     input addAction { () =>
       val inputSig = input.getSignal
-      schedule(InverterDelay) { output <~ !inputSig }
+      schedule(InverterDelay) { output <~ op(inputSig) }
     }
     output
   }
 
+  def inverter(input: Wire): Wire = unaryLogicGate(input) { !_ }
   def inverter(input: Bus): Bus = input map inverter
+
+  def buffer(input: Wire): Wire = unaryLogicGate(input) { identity }
+  def buffer(input: Bus): Bus = input map buffer
 
   def binaryLogicGate(a: Wire, b: Wire)(op: (Boolean, Boolean) => Boolean) = {
     val output = new Wire
@@ -44,6 +48,11 @@ trait LogicElements extends CircuitSimulation {
   def xor(x: Bus, y: Bus): Bus  = (x, y).zipped map xor
   def nand(x: Bus, y: Bus): Bus = (x, y).zipped map nand
   def nor(x: Bus, y: Bus): Bus  = (x, y).zipped map nor
+
+  def rotateRight(a: Bus): Bus = buffer(a.drop(1) ++ a.take(1))
+  def rotateLeft(a: Bus): Bus  = buffer(a.takeRight(1) ++ a.dropRight(1))
+  def shiftRight(a: Bus): Bus  = buffer(a.drop(1) :+ Ground)
+  def shiftLeft(a: Bus): Bus   = buffer(Ground +: a.dropRight(1))
 }
 
 trait SequentialElements extends CircuitSimulation {
