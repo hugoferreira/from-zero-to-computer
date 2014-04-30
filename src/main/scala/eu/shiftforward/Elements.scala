@@ -161,6 +161,11 @@ trait ControlFlowElements extends LogicElements {
 
   def demux(a: Wire, s: Wire): (Wire, Wire) =
     (and(a, inverter(s)), and(a, s))
+
+  def demux(a: Bus, s: Wire): (Bus, Bus) = {
+    val (x, y) = (a map { x => demux(x, s) }).unzip
+    (x, y)
+  }
 }
 
 trait Memory extends SequentialElements with ControlFlowElements {

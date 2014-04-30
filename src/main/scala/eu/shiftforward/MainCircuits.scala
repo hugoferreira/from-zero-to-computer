@@ -85,6 +85,32 @@ object RegisterTest extends App {
   }
 }
 
+object RamTest extends App {
+  new CircuitSimulation with Memory {
+    implicit val clk = clock(1)
+
+    val addr, load = new Wire
+    val data = new Bus(8)
+    val out  = ram(data, addr, load)
+
+    implicit val tracer = new ConsoleTracer
+    tracer.setProbes(("data\t", data), ("addr", addr), ("load", load), ("out\t", out), ("clk", clk))
+
+    run(1)
+
+    addr <~ true
+    data <~ 0x0F
+    run(5)
+
+    load <~ true
+    run(5)
+
+    load <~ false
+    addr <~ false
+    run(5)
+  }
+}
+
 object MultipleMuxTest extends App {
   new CircuitSimulation with Memory {
     val sel = new Bus(3)
