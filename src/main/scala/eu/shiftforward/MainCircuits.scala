@@ -85,6 +85,33 @@ object RegisterTest extends App {
   }
 }
 
+object MultipleMuxTest extends App {
+  new CircuitSimulation with Memory {
+    val sel = new Bus(3)
+    val a, b, c, d, e, f, g, h = new Bus(4)
+    val out = mux(List(a, b, c, d, e, f, g, h), sel)
+
+    implicit val tracer = new ConsoleTracer
+    tracer.setProbes(("a", a), ("b", b), ("c", c), ("d", d), ("e", e), ("f", f), ("g", g), ("h", h), ("sel", sel), ("out", out))
+
+    run(1)
+
+    a <~ 0x01
+    b <~ 0x02
+    c <~ 0x03
+    d <~ 0x04
+    e <~ 0x05
+    f <~ 0x06
+    g <~ 0x07
+    h <~ 0x08
+
+    (0 to 7).foreach { s =>
+      sel <~ s
+      run(1)
+    }
+  }
+}
+
 object RegisterBasedALUTest extends App {
   new CircuitSimulation with ArithmeticElements with Memory {
     implicit val clk = clock(1)

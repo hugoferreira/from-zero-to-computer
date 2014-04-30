@@ -152,7 +152,14 @@ trait ControlFlowElements extends LogicElements {
   def mux(a: Bus, b: Bus, selector: Wire): Bus =
     (a, b).zipped map { mux(_, _, selector) }
 
-  def demux(a: Wire, s: Wire) =
+  def mux(a: Iterable[Bus], selector: Bus): Bus = selector.reverse match {
+    case h +: Seq() =>
+      mux(a.drop(1).head, a.head, h)
+    case h +: t =>
+      mux(mux(a.drop(a.size / 2), t.reverse), mux(a.take(a.size / 2), t.reverse), h)
+  }
+
+  def demux(a: Wire, s: Wire): (Wire, Wire) =
     (and(a, inverter(s)), and(a, s))
 }
 
