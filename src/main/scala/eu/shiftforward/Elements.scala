@@ -1,9 +1,7 @@
 package eu.shiftforward
 
-import scala.Function.tupled
-
 trait LogicElements extends CircuitSimulation {
-  def unaryLogicGate(input: Wire)(op: Boolean => Boolean) = {
+  private def unaryLogicGate(input: Wire)(op: Boolean => Boolean) = {
     val output = new Wire
     input addAction { () =>
       val inputSig = input.getSignal
@@ -18,7 +16,7 @@ trait LogicElements extends CircuitSimulation {
   def buffer(input: Wire): Wire = unaryLogicGate(input) { identity }
   def buffer(input: Bus): Bus = input map buffer
 
-  def binaryLogicGate(a: Wire, b: Wire)(op: (Boolean, Boolean) => Boolean) = {
+  private def binaryLogicGate(a: Wire, b: Wire)(op: (Boolean, Boolean) => Boolean) = {
     val output = new Wire
     def action() {
       val inputA = a.getSignal
@@ -184,7 +182,7 @@ trait Memory extends SequentialElements with ControlFlowElements {
       val clockIn = clock.getSignal
       val loadIn  = load.getSignal
       val inputA  = in.getSignal
-      schedule(0) {
+      schedule(ClockedGateDelay) {
         if (clockIn && loadIn) {
           state = inputA
           out <~ state
@@ -198,4 +196,13 @@ trait Memory extends SequentialElements with ControlFlowElements {
   }
 
   def register(in: Bus, load: Wire)(implicit clock: Wire): Bus = in map { register(_, load) }
+
+trait ArithmeticSequentialElements extends ArithmeticElements with Memory {
+  def counter(width: Int)(reset: Wire)(implicit clock: Wire) = {
+    val in = new Bus(width)
+    val reg = register(in, true)
+    val (inc, _) = multiBitIncrementer(reg)
+    mux(inc, constant(width)(0), reset) ~> in
+    reg
+  }
 }

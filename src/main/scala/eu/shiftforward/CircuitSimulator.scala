@@ -2,6 +2,7 @@ package eu.shiftforward
 
 abstract class CircuitSimulation extends Simulation {
   val GenericGateDelay: Int = 0
+  val ClockedGateDelay: Int = 0
   val InverterDelay: Int = 0
   val FlipFlopDelay: Int = 0
 
@@ -19,5 +20,6 @@ abstract class CircuitSimulation extends Simulation {
     curtime = stopTime
   }
 
-  implicit def toBus(wires: Iterable[Wire]) = new Bus(wires)
+  implicit def toBus(wires: Iterable[Wire]): Bus = new Bus(wires)
+  implicit def toWire(value: Boolean): Wire = if (value) Source else Ground
 }

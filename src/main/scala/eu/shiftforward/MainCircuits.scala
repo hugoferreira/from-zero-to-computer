@@ -2,13 +2,18 @@ package eu.shiftforward
 
 import java.io.File
 
-object DffTest extends App {
+trait SimulationApp extends App {
+  implicit val tracer = new VCDTracer(new File("/tmp/output.vcd"))
+
+  def shutdown() = tracer.close()
+}
+
+object DffTest extends SimulationApp {
   new CircuitSimulation with SequentialElements {
     implicit val clk = clock(1)
     val in = new Wire
     val out = dff(in)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("in", in), ("out", out), ("clk", clk))
 
     run(3)
@@ -25,15 +30,16 @@ object DffTest extends App {
     in <~ false
     run(3)
   }
+
+  shutdown()
 }
 
-object OneBitRegisterTest extends App {
+object OneBitRegisterTest extends SimulationApp {
   new CircuitSimulation with Memory {
     implicit val clk = clock(1)
     val in, load = new Wire
     val out = register(in, load)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("in", in), ("load", load), ("out", out), ("clk", clk))
 
     run(1)
@@ -55,16 +61,17 @@ object OneBitRegisterTest extends App {
     load <~ true
     run(5)
   }
+
+  shutdown()
 }
 
-object RegisterTest extends App {
+object RegisterTest extends SimulationApp {
   new CircuitSimulation with Memory {
     implicit val clk = clock(1)
     val load = new Wire
     val in   = new Bus(8)
     val out  = register(in, load)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("in", in), ("load", load), ("out", out), ("clk", clk))
 
     run(1)
@@ -83,9 +90,11 @@ object RegisterTest extends App {
     in   <~ 0xF0
     run(5)
   }
+
+  shutdown()
 }
 
-object RamTest extends App {
+object RamTest extends SimulationApp {
   new CircuitSimulation with Memory {
     implicit val clk = clock(1)
 
@@ -93,7 +102,6 @@ object RamTest extends App {
     val data = new Bus(8)
     val out  = ram(data, addr, load)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("data\t", data), ("addr", addr), ("load", load), ("out\t", out), ("clk", clk))
 
     run(1)
@@ -109,15 +117,16 @@ object RamTest extends App {
     addr <~ false
     run(5)
   }
+
+  shutdown()
 }
 
-object MultipleMuxTest extends App {
+object MultipleMuxTest extends SimulationApp {
   new CircuitSimulation with Memory {
     val sel = new Bus(3)
     val a, b, c, d, e, f, g, h = new Bus(4)
     val out = mux(List(a, b, c, d, e, f, g, h), sel)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("a", a), ("b", b), ("c", c), ("d", d), ("e", e), ("f", f), ("g", g), ("h", h), ("sel", sel), ("out", out))
 
     run(1)
@@ -136,9 +145,11 @@ object MultipleMuxTest extends App {
       run(1)
     }
   }
+
+  shutdown()
 }
 
-object RegisterBasedALUTest extends App {
+object RegisterBasedALUTest extends SimulationApp {
   new CircuitSimulation with ArithmeticElements with Memory {
     implicit val clk = clock(1)
     val loadA, loadB, loadSum = new Wire
@@ -150,7 +161,6 @@ object RegisterBasedALUTest extends App {
     val r3 = register(sum, loadSum)
     val r4 = register(bta, loadSum)
 
-    implicit val tracer = new VCDTracer(new File("/tmp/output.vcd"))
     tracer.setProbes(("a", a), ("r1", r1), ("b", b), ("r2", r2), ("r3", sum), ("r4", bta), ("clk", clk), ("loadA", loadA), ("loadB", loadB), ("load", loadSum))
 
     a       <~ 0x01
@@ -167,16 +177,17 @@ object RegisterBasedALUTest extends App {
 
     tracer.close()
   }
+
+  shutdown()
 }
 
-object FlipFlopTest extends App {
+object FlipFlopTest extends SimulationApp {
   new CircuitSimulation with SequentialElements {
     override val FlipFlopDelay: Int = 1
 
     val set, reset = new Wire
     val (out, cout) = flipflop(set, reset)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("set", set), ("reset", reset), ("out", out), ("cout", cout))
 
     run(3)
@@ -193,14 +204,15 @@ object FlipFlopTest extends App {
     reset <~ false
     run(3)
   }
+
+  shutdown()
 }
 
-object SumTest extends App {
+object SumTest extends SimulationApp {
   new CircuitSimulation with ArithmeticElements {
     val input1, input2, cin = new Wire
     val (sum, carry) = fullAdder(input1, input2, cin)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("a", input1), ("b", input2), ("cin", cin), ("sum", sum), ("carry", carry))
 
     run(2)
@@ -216,9 +228,11 @@ object SumTest extends App {
 
     tracer.close()
   }
+
+  shutdown()
 }
 
-object ClockTest extends App {
+object ClockTest extends SimulationApp {
   new CircuitSimulation with LogicElements with SequentialElements {
     val clk  = clock(1)
     val clk2 = clock(2)
@@ -226,19 +240,20 @@ object ClockTest extends App {
 
     val comb = and(clk, clk2)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("clk1", clk), ("clk2", clk2), ("clk3", clk3), ("and", comb))
 
     run(20)
   }
+
+  shutdown()
 }
 
-object MuxTest extends App {
+
+object MuxTest extends SimulationApp {
   class MuxTestCircuit extends CircuitSimulation with SimulationStatistics with ControlFlowElements  {
     val a, b, s = new Wire
     val out = mux(a, b, s)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("a", a), ("b", b), ("s", s), ("out", out))
 
     run(10)
@@ -256,12 +271,11 @@ object MuxTest extends App {
   assert(normal.actionCount > opt.actionCount)
 }
 
-object DeMuxTest extends App {
+object DeMuxTest extends SimulationApp {
   new CircuitSimulation with ControlFlowElements with OptimizedElements {
     val a, s = new Wire
     val (outA, outB) = demux(a, s)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("a", a), ("s", s), ("outA", outA), ("outB", outB))
 
     run(10)
@@ -272,15 +286,16 @@ object DeMuxTest extends App {
     s <~ true
     run(10)
   }
+
+  shutdown()
 }
 
-object BusTest extends App {
+object BusTest extends SimulationApp {
   new CircuitSimulation with LogicElements {
     val in, out = new Bus(4)
 
     inverter(in) ~> out
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("a", in(3)),  ("b", in(2)),  ("c", in(1)),  ("d", in(0)),
                      ("x", out(3)), ("y", out(2)), ("z", out(1)), ("k", out(0)),
                      ("busin", in), ("busout", out))
@@ -293,9 +308,11 @@ object BusTest extends App {
     in setSignal 0xF
     run(10)
   }
+
+  shutdown()
 }
 
-object BitShuffleTest extends App {
+object BitShuffleTest extends SimulationApp {
   new CircuitSimulation with LogicElements {
     val in = new Bus(4)
     val rol = rotateLeft(in)
@@ -303,7 +320,6 @@ object BitShuffleTest extends App {
     val shl = shiftLeft(in)
     val shr = shiftRight(in)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("in", in), ("rotL", rol), ("rotR", ror), ("shiftL", shl), ("shiftR", shr))
     run(10)
 
@@ -312,14 +328,15 @@ object BitShuffleTest extends App {
         run(1)
     }
   }
+
+  shutdown()
 }
 
-object EightBitAdder extends App {
+object EightBitAdder extends SimulationApp {
   new CircuitSimulation with LogicElements with ArithmeticElements with SequentialElements {
     val busA, busB = new Bus(8)
     val (busOut, overflow) = multiBitAdder(busA, busB)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("bus a (in)", busA), ("bus b (in)", busB), ("sum (output)", busOut), ("of", overflow))
 
     run(1)
@@ -331,14 +348,15 @@ object EightBitAdder extends App {
       run(1)
     }
   }
+
+  shutdown()
 }
 
-object EightBitIncrementer extends App {
+object EightBitIncrementer extends SimulationApp {
   new CircuitSimulation with LogicElements with ArithmeticElements with SequentialElements {
     val busA = new Bus(8)
     val (busOut, overflow) = multiBitIncrementer(busA)
 
-    implicit val tracer = new ConsoleTracer
     tracer.setProbes(("bus a (in)", busA), ("sum (output)", busOut), ("of", overflow))
 
     run(1)
@@ -348,15 +366,35 @@ object EightBitIncrementer extends App {
       run(1)
     }
   }
+
+  shutdown()
 }
 
-object EightBitMultiplexer extends App {
+object EightBitCounter extends SimulationApp {
+  new CircuitSimulation with ArithmeticSequentialElements {
+    implicit val clk = clock(1)
+
+    val reset = new Wire
+    val pc = counter(8)(reset)
+
+    tracer.setProbes(("reset", reset), ("counter\t", pc), ("clk", clk))
+
+    run(10)
+    reset <~ true
+    run(10)
+    reset <~ false
+    run(10)
+  }
+
+  shutdown()
+}
+
+object EightBitMultiplexer extends SimulationApp {
   new CircuitSimulation with LogicElements with ControlFlowElements {
     val busA, busB = new Bus(8)
     val selector = new Wire
     val busOut = mux(busA, busB, selector)
 
-    implicit val tracer = new VCDTracer(new File("/tmp/output.vcd"))
     tracer.setProbes(("busA", busA), ("busB", busB), ("sel", selector), ("sum", busOut))
 
     run(1)
@@ -369,7 +407,7 @@ object EightBitMultiplexer extends App {
 
     busB setSignal 0xFF
     run(1)
-
-    tracer.close()
   }
+
+  shutdown()
 }
