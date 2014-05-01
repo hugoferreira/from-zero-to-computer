@@ -4,8 +4,8 @@
 # Author: Paul Phillips <paulp@typesafe.com>
 
 # todo - make this dynamic
-declare -r sbt_release_version="0.13.1"
-declare -r sbt_unreleased_version="0.13.2-SNAPSHOT" # -sbt-dev doesn't work at present
+declare -r sbt_release_version="0.13.2"
+declare -r sbt_unreleased_version="0.13.5-M4"
 declare -r buildProps="project/build.properties"
 
 declare sbt_jar sbt_dir sbt_create sbt_launch_dir
@@ -14,7 +14,7 @@ declare verbose debug quiet noshare batch trace_level log_level
 declare sbt_saved_stty
 
 echoerr () { [[ -z "$quiet" ]]           && echo    "$@" >&2; }
-vlog ()    { [[ -n "$verbose$debug" ]] && echoerr "$@"; }
+vlog ()    { [[ -n "$verbose$debug" ]]   && echoerr "$@"; }
 dlog ()    { [[ -n "$debug" ]]           && echoerr "$@"; }
 
 # we'd like these set before we get around to properly processing arguments
@@ -119,11 +119,11 @@ init_default_option_file () {
 
 declare -r cms_opts="-XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
 declare -r jit_opts="-XX:ReservedCodeCacheSize=256m -XX:+TieredCompilation"
-declare -r default_jvm_opts="-Dfile.encoding=UTF8 -XX:MaxPermSize=384m -Xms512m -Xmx4g -Xss2m $jit_opts $cms_opts"
+declare -r default_jvm_opts="-Dfile.encoding=UTF8 -XX:MaxPermSize=384m -Xms512m -Xmx1536m -Xss2m $jit_opts $cms_opts"
 declare -r noshare_opts="-Dsbt.global.base=project/.sbtboot -Dsbt.boot.directory=project/.boot -Dsbt.ivy.home=project/.ivy"
 declare -r latest_28="2.8.2"
 declare -r latest_29="2.9.3"
-declare -r latest_210="2.10.3"
+declare -r latest_210="2.10.4"
 declare -r latest_211="2.11.0"
 
 declare -r script_path="$(get_script_path "$BASH_SOURCE")"
@@ -466,11 +466,9 @@ fi
 # traceLevel is 0.12+
 [[ -n "$trace_level" ]] && setTraceLevel
 
-
 if [[ -n "$log_level" ]] && [[ "$log_level" != Info ]]; then
   sbt_commands=("set logLevel in Global := Level.$log_level" "${sbt_commands[@]}")
 fi
-
 
 # run sbt
 execRunner "$java_cmd" \
