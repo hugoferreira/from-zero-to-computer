@@ -20,6 +20,13 @@ abstract class CircuitSimulation extends Simulation {
     curtime = stopTime
   }
 
+  def runUntil(breakpoint: => Boolean)(implicit tracer: Tracer = DummyTracer) {
+    while(hasNext && !breakpoint) {
+      step()
+      tracer.trace(currentTime)
+    }
+  }
+
   implicit def toBus(wires: Iterable[Wire]): Bus = new Bus(wires)
   implicit def toWire(value: Boolean): Wire = if (value) Source else Ground
 }

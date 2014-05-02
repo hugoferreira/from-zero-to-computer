@@ -58,6 +58,8 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Seq[Wire] {
 
   def <~(s: Int) = setSignal(s)
 
+  def is(s: Int) = toInt == s
+
   def setSignal(s: Int) {
     wires zip s.toBinaryString.reverse.padTo(wires.size, '0') foreach {
       case (sig, c) => sig <~ (c == '1')
@@ -71,5 +73,6 @@ class Bus(wires: Wire*) extends Connector[Iterable[Boolean]] with Seq[Wire] {
   def connectTo(b: Bus) { (this, b).zipped foreach { _ ~> _ } }
   def ~>(w: Bus) { connectTo(w) }
 
+  def toInt = Integer.parseInt(toString(), 2)
   override def toString() = wires.map(s => if (s.getSignal) 1 else 0).mkString.reverse
 }

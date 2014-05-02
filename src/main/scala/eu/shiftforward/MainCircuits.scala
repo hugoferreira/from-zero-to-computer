@@ -305,7 +305,7 @@ object BusTest extends SimulationApp {
     in(3) <~ true
     run(10)
 
-    in setSignal 0xF
+    in <~ 0xF
     run(10)
   }
 
@@ -324,7 +324,7 @@ object BitShuffleTest extends SimulationApp {
     run(10)
 
     (1 to 10).foreach { i =>
-        in setSignal i
+        in <~ i
         run(1)
     }
   }
@@ -341,10 +341,10 @@ object EightBitAdder extends SimulationApp {
 
     run(1)
 
-    busA setSignal 0xFA
+    busA <~ 0xFA
 
     (1 to 10).foreach { i =>
-      busB setSignal i
+      busB <~ i
       run(1)
     }
   }
@@ -362,7 +362,7 @@ object EightBitIncrementer extends SimulationApp {
     run(1)
 
     (0xFC to 0xFF).foreach { i =>
-      busA setSignal i
+      busA <~ i
       run(1)
     }
   }
@@ -379,11 +379,13 @@ object EightBitCounter extends SimulationApp {
 
     tracer.setProbes(("reset", reset), ("counter\t", pc), ("clk", clk))
 
-    run(10)
+    runUntil { pc is 0x05 }
+
     reset <~ true
     run(10)
+
     reset <~ false
-    run(10)
+    runUntil { pc is 0x05 }
   }
 
   shutdown()
@@ -399,13 +401,13 @@ object EightBitMultiplexer extends SimulationApp {
 
     run(1)
 
-    busA setSignal 0xFA
+    busA <~ 0xFA
     run(1)
 
     selector <~ true
     run(1)
 
-    busB setSignal 0xFF
+    busB <~ 0xFF
     run(1)
   }
 
