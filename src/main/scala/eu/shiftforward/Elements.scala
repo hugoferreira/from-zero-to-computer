@@ -164,6 +164,8 @@ trait ControlFlowElements extends LogicElements {
     val (x, y) = (a map { x => demux(x, s) }).unzip
     (x, y)
   }
+
+  def comparator0(a: Bus): Wire = inverter(or(a))
 }
 
 trait Memory extends SequentialElements with ControlFlowElements {
