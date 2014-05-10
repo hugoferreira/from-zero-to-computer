@@ -1,6 +1,8 @@
-package eu.shiftforward
+package eu.shiftforward.Elements
 
-class ALU extends ArithmeticElements with ControlFlowElements {
+import eu.shiftforward._
+
+class ALU extends Arithmetic with ControlFlow {
   def alu(x: Bus, y: Bus, zx: Wire, nx: Wire, zy: Wire, ny: Wire, f: Wire, no: Wire): (Bus, Wire, Wire, Wire) = {
     assert(x.size == y.size)
 

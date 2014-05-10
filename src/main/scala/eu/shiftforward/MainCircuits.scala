@@ -1,6 +1,7 @@
 package eu.shiftforward
 
 import java.io.File
+import eu.shiftforward.Elements._
 
 trait SimulationApp extends App {
   implicit val tracer = new VCDTracer(new File("/tmp/output.vcd"))
@@ -9,7 +10,7 @@ trait SimulationApp extends App {
 }
 
 object DffTest extends SimulationApp {
-  new CircuitSimulation with SequentialElements {
+  new CircuitSimulation with Sequential {
     implicit val clk = clock(1)
     val in = new Wire
     val out = dff(in)
@@ -150,7 +151,7 @@ object MultipleMuxTest extends SimulationApp {
 }
 
 object RegisterBasedALUTest extends SimulationApp {
-  new CircuitSimulation with ArithmeticElements with Memory {
+  new CircuitSimulation with Arithmetic with Memory {
     implicit val clk = clock(1)
     val loadA, loadB, loadSum = new Wire
     val a, b = new Bus(8)
@@ -182,7 +183,7 @@ object RegisterBasedALUTest extends SimulationApp {
 }
 
 object FlipFlopTest extends SimulationApp {
-  new CircuitSimulation with SequentialElements {
+  new CircuitSimulation with Sequential {
     override val FlipFlopDelay: Int = 1
 
     val set, reset = new Wire
@@ -209,7 +210,7 @@ object FlipFlopTest extends SimulationApp {
 }
 
 object SumTest extends SimulationApp {
-  new CircuitSimulation with ArithmeticElements {
+  new CircuitSimulation with Arithmetic {
     val input1, input2, cin = new Wire
     val (sum, carry) = fullAdder(input1, input2, cin)
 
@@ -233,7 +234,7 @@ object SumTest extends SimulationApp {
 }
 
 object ClockTest extends SimulationApp {
-  new CircuitSimulation with LogicElements with SequentialElements {
+  new CircuitSimulation with Logic with Sequential {
     val clk  = clock(1)
     val clk2 = clock(2)
     val clk3 = clock(3)
@@ -250,7 +251,7 @@ object ClockTest extends SimulationApp {
 
 
 object MuxTest extends SimulationApp {
-  class MuxTestCircuit extends CircuitSimulation with SimulationStatistics with ControlFlowElements  {
+  class MuxTestCircuit extends CircuitSimulation with SimulationStatistics with ControlFlow {
     val a, b, s = new Wire
     val out = mux(a, b, s)
 
@@ -272,7 +273,7 @@ object MuxTest extends SimulationApp {
 }
 
 object DeMuxTest extends SimulationApp {
-  new CircuitSimulation with ControlFlowElements with OptimizedElements {
+  new CircuitSimulation with ControlFlow with OptimizedElements {
     val a, s = new Wire
     val (outA, outB) = demux(a, s)
 
@@ -291,7 +292,7 @@ object DeMuxTest extends SimulationApp {
 }
 
 object BusTest extends SimulationApp {
-  new CircuitSimulation with LogicElements {
+  new CircuitSimulation with Logic {
     val in, out = new Bus(4)
 
     inverter(in) ~> out
@@ -313,7 +314,7 @@ object BusTest extends SimulationApp {
 }
 
 object BitShuffleTest extends SimulationApp {
-  new CircuitSimulation with LogicElements {
+  new CircuitSimulation with Logic {
     val in = new Bus(4)
     val rol = rotateLeft(in)
     val ror = rotateRight(in)
@@ -321,9 +322,8 @@ object BitShuffleTest extends SimulationApp {
     val shr = shiftRight(in)
 
     tracer.setProbes(("in", in), ("rotL", rol), ("rotR", ror), ("shiftL", shl), ("shiftR", shr))
-    run(10)
 
-    (1 to 10).foreach { i =>
+    (0 to 10).foreach { i =>
         in <~ i
         run(1)
     }
@@ -332,8 +332,26 @@ object BitShuffleTest extends SimulationApp {
   shutdown()
 }
 
+object CmpTest extends SimulationApp {
+  new CircuitSimulation with Arithmetic {
+    val in = new Bus(4)
+    val cmpZero = cmp0(in)
+    val cmpTen  = cmp(in, constant(4)(0x0A))
+
+    tracer.setProbes(("in", in), ("cmp0", cmpZero), ("cmpTen", cmpTen))
+
+    (0 to 10).foreach { i =>
+      in <~ i
+      run(1)
+    }
+  }
+
+  shutdown()
+}
+
+
 object EightBitAdder extends SimulationApp {
-  new CircuitSimulation with LogicElements with ArithmeticElements with SequentialElements {
+  new CircuitSimulation with Logic with Arithmetic with Sequential {
     val busA, busB = new Bus(8)
     val (busOut, overflow) = multiBitAdder(busA, busB)
 
@@ -353,7 +371,7 @@ object EightBitAdder extends SimulationApp {
 }
 
 object EightBitIncrementer extends SimulationApp {
-  new CircuitSimulation with LogicElements with ArithmeticElements with SequentialElements {
+  new CircuitSimulation with Logic with Arithmetic with Sequential {
     val busA = new Bus(8)
     val (busOut, overflow) = multiBitIncrementer(busA)
 
@@ -371,7 +389,7 @@ object EightBitIncrementer extends SimulationApp {
 }
 
 object EightBitCounter extends SimulationApp {
-  new CircuitSimulation with ArithmeticSequentialElements {
+  new CircuitSimulation with SequentialArithmetic {
     implicit val clk = clock(1)
 
     val reset = new Wire
@@ -392,7 +410,7 @@ object EightBitCounter extends SimulationApp {
 }
 
 object EightBitMultiplexer extends SimulationApp {
-  new CircuitSimulation with LogicElements with ControlFlowElements {
+  new CircuitSimulation with Logic with ControlFlow {
     val busA, busB = new Bus(8)
     val selector = new Wire
     val busOut = mux(busA, busB, selector)

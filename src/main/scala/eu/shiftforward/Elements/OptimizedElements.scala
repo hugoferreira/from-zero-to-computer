@@ -1,6 +1,8 @@
-package eu.shiftforward
+package eu.shiftforward.Elements
 
-trait OptimizedControlFlowElements extends ControlFlowElements {
+import eu.shiftforward.Wire
+
+trait OptimizedControlFlow extends ControlFlow {
   override def mux(a: Wire, b: Wire, s: Wire) = {
     val output = new Wire
     def action() {
@@ -38,7 +40,7 @@ trait OptimizedControlFlowElements extends ControlFlowElements {
   }
 }
 
-trait OptimizedArithmeticElements extends ArithmeticElements {
+trait OptimizedArithmetic extends Arithmetic {
   override def fullAdder(a: Wire, b: Wire, cin: Wire) = {
     val sum, cout = new Wire
 
@@ -68,4 +70,4 @@ trait OptimizedArithmeticElements extends ArithmeticElements {
   }
 }
 
-trait OptimizedElements extends OptimizedControlFlowElements with OptimizedArithmeticElements
+trait OptimizedElements extends OptimizedControlFlow with OptimizedArithmetic

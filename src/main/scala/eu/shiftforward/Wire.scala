@@ -1,5 +1,7 @@
 package eu.shiftforward
 
+import eu.shiftforward.Simulation
+
 sealed trait Connector[T] {
   def getSignal: T
   def <~(s: T) = setSignal(s)
