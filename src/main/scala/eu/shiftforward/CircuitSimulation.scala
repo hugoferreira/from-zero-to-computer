@@ -29,4 +29,6 @@ abstract class CircuitSimulation extends Simulation {
 
   implicit def toBus(wires: Iterable[Wire]): Bus = new Bus(wires)
   implicit def toWire(value: Boolean): Wire = if (value) Source else Ground
+
+  def master = currentTime
 }

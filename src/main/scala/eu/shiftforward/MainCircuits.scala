@@ -351,7 +351,7 @@ object CmpTest extends SimulationApp {
 
 
 object EightBitAdder extends SimulationApp {
-  new CircuitSimulation with Logic with Arithmetic with Sequential {
+  new CircuitSimulation with Arithmetic with Sequential {
     val busA, busB = new Bus(8)
     val (busOut, overflow) = multiBitAdder(busA, busB)
 
@@ -371,7 +371,7 @@ object EightBitAdder extends SimulationApp {
 }
 
 object EightBitIncrementer extends SimulationApp {
-  new CircuitSimulation with Logic with Arithmetic with Sequential {
+  new CircuitSimulation with Arithmetic with Sequential {
     val busA = new Bus(8)
     val (busOut, overflow) = multiBitIncrementer(busA)
 
@@ -397,20 +397,17 @@ object EightBitCounter extends SimulationApp {
 
     tracer.setProbes(("reset", reset), ("counter\t", pc), ("clk", clk))
 
-    runUntil { pc is 0x05 }
+    schedule { pc is 0x05 } { reset <~ true }
+    schedule { master == 0x10 } { reset <~ false }
 
-    reset <~ true
-    run(10)
-
-    reset <~ false
-    runUntil { pc is 0x05 }
+    runUntil { master == 0x15 }
   }
 
   shutdown()
 }
 
 object EightBitMultiplexer extends SimulationApp {
-  new CircuitSimulation with Logic with ControlFlow {
+  new CircuitSimulation with ControlFlow {
     val busA, busB = new Bus(8)
     val selector = new Wire
     val busOut = mux(busA, busB, selector)

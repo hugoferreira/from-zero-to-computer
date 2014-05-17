@@ -4,13 +4,13 @@ trait Tracer {
   type Probe = (String, Connector[_])
 
   def setProbes(probes: Probe*)
-  def trace(currentTime: Int)
+  def trace(currentTime: Long)
   def close() { }
 }
 
 object DummyTracer extends Tracer {
   def setProbes(probes: Probe*) { }
-  def trace(currentTime: Int) { }
+  def trace(currentTime: Long) { }
 }
 
 class ConsoleTracer extends Tracer {
@@ -31,7 +31,7 @@ class ConsoleTracer extends Tracer {
 
   def currentValues = probes.map(_._2)
 
-  def trace(currentTime: Int) {
+  def trace(currentTime: Long) {
     val signals = currentValues.map(_.getSignal)
     val values  = if (!lastValues.isEmpty) lastValues.zip(signals).map {
       case (h: Boolean, s: Boolean)  => prettyPrintSignal(h, s)
@@ -73,7 +73,7 @@ class VCDTracer(file: java.io.File, secondaryTracer: Tracer = new ConsoleTracer)
 
   def currentValues = probes.map(_._2)
 
-  def trace(currentTime: Int) {
+  def trace(currentTime: Long) {
     pw.println("#" + currentTime)
     currentValues.zip(symbolList).map {
       case (v: Wire, s) => (if (v.getSignal) 1 else 0) + s

@@ -5,31 +5,39 @@ import scala.collection.immutable.Queue
 
 abstract class Simulation {
   type Action = () => Unit
-  type Agenda = SortedMap[Int, Queue[Action]]
+  type Agenda = SortedMap[Long, Queue[Action]]
+  type Trigger = (() => Boolean, () => Unit)
 
-  protected var curtime = 0
-  def currentTime: Int = curtime
+  protected var curtime = 0l
+  def currentTime: Long = curtime
 
   private var agenda: Agenda = SortedMap()
+  private var triggers: List[Trigger] = List()
 
   def schedule(delay: Int = 0)(block: => Unit) {
     val time = currentTime + delay
     agenda += (time -> agenda.getOrElse(time, Queue()).enqueue(() => block))
   }
 
+  def schedule(condition: => Boolean)(action: => Unit) {
+    triggers = (() => condition, () => action) :: triggers
+  }
+
   protected def step() {
-    if (!agenda.isEmpty) {
+    if (hasNext) {
       curtime = agenda.head._1
 
       while(agenda.contains(curtime)) {
         val actions = agenda(curtime)
         agenda -= curtime
         processActions(actions)
+        processTriggers()
       }
     }
   }
 
   protected def processActions(actions: Seq[Action]) { actions.foreach(_()) }
+  protected def processTriggers() { triggers.filter(_._1()).foreach(_._2()) }
 
   protected def hasNext = !agenda.isEmpty
 

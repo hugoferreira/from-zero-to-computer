@@ -1,7 +1,5 @@
 package eu.shiftforward
 
-import eu.shiftforward.Simulation
-
 sealed trait Connector[T] {
   def getSignal: T
   def <~(s: T) = setSignal(s)
@@ -14,6 +12,8 @@ class Wire extends Connector[Boolean] {
   private var actions: List[Simulation#Action] = List()
 
   def getSignal: Boolean = signal
+
+  def is(s: Boolean) = signal == s
 
   def setSignal(s: Boolean) {
     if (s != signal) {
