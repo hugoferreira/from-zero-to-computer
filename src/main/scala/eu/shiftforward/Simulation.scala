@@ -20,7 +20,7 @@ abstract class Simulation {
   }
 
   def schedule(condition: => Boolean)(action: => Unit) {
-    triggers = (() => condition, () => action) :: triggers
+    triggers ::= (() => condition, () => action)
   }
 
   protected def step() {

@@ -16,6 +16,17 @@ trait ControlFlow extends Logic {
       mux(mux(a.drop(a.size / 2), t.reverse), mux(a.take(a.size / 2), t.reverse), h)
   }
 
+  def demux(a: Bus, selector: Bus): List[Bus] = selector.reverse match {
+    case h +: Seq() =>
+      val (x, y) = demux(a, h)
+      List(y, x)
+    case h +: t =>
+      val (l, r) = demux(a, h)
+      demux(r, t) ++ demux(l, t)
+  }
+
+  def demux(a: Wire, selector: Bus): List[Wire] = demux(new Bus(a), selector).map(_(0))
+
   def demux(a: Wire, s: Wire): (Wire, Wire) =
     (and(a, inverter(s)), and(a, s))
 

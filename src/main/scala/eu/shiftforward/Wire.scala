@@ -18,9 +18,11 @@ class Wire extends Connector[Boolean] {
   def setSignal(s: Boolean) {
     if (s != signal) {
       signal = s
-      actions foreach (_())
+      doActions()
     }
   }
+
+  protected def doActions() { actions foreach (_()) }
 
   def addAction(a: Simulation#Action) {
     actions ::= a
@@ -33,14 +35,12 @@ class Wire extends Connector[Boolean] {
 
 object Ground extends Wire {
   override def getSignal = false
-  override def setSignal(s: Boolean) { }
-  override def addAction(a: Simulation#Action) { }
+  override def setSignal(s: Boolean) { doActions() }
 }
 
 object Source extends Wire {
   override def getSignal = true
-  override def setSignal(s: Boolean) { }
-  override def addAction(a: Simulation#Action) { }
+  override def setSignal(s: Boolean) { doActions() }
 }
 
 // ToDo: use shapeless to enforce width conformance at type level

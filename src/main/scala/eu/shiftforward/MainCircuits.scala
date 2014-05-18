@@ -99,24 +99,35 @@ object RamTest extends SimulationApp {
   new CircuitSimulation with Memory {
     implicit val clk = clock(1)
 
-    val addr, load = new Wire
-    val data = new Bus(8)
+    val load = new Wire
+    val data = new Bus(4)
+    val addr = new Bus(1)
     val out  = ram(data, addr, load)
 
-    tracer.setProbes(("data\t", data), ("addr", addr), ("load", load), ("out\t", out), ("clk", clk))
+    tracer.setProbes(("data", data), ("addr", addr), ("load", load), ("out", out), ("clk", clk))
 
-    run(1)
-
-    addr <~ true
-    data <~ 0x0F
-    run(5)
+    addr <~ 0x00
+    data <~ 0x01
+    run(4)
 
     load <~ true
-    run(5)
+    run(4)
 
     load <~ false
-    addr <~ false
-    run(5)
+    run(4)
+
+    addr <~ 0x01
+    data <~ 0x02
+    run(4)
+
+    load <~ true
+    run(4)
+
+    load <~ false
+    run(4)
+
+    addr <~ 0x00
+    run(4)
   }
 
   shutdown()
@@ -145,6 +156,24 @@ object MultipleMuxTest extends SimulationApp {
       sel <~ s
       run(1)
     }
+  }
+
+  shutdown()
+}
+
+object MultipleDeMuxTest extends SimulationApp {
+  new CircuitSimulation with ControlFlow with SequentialArithmetic {
+    implicit val clk = clock(1)
+    val pc = counter(3)(Ground)
+    val in = new Bus(4)
+    val outs  = demux(in, pc)
+
+    tracer.setProbes(("in", in), ("sel", pc), ("a", outs(0)), ("b", outs(1)), ("c", outs(2)),
+                                              ("d", outs(3)), ("e", outs(4)), ("f", outs(5)),
+                                              ("g", outs(6)), ("h", outs(7)))
+
+    in  <~ 0x0F
+    runUntil { master == 0x0F }
   }
 
   shutdown()
