@@ -2,7 +2,7 @@ name := "discrete-circuit-simulator"
 
 version := "0.1"
 
-scalaVersion := "2.11.0"
+scalaVersion := "2.11.1"
 
 resolvers ++= Seq(
   "snapshots"           at "http://oss.sonatype.org/content/repositories/snapshots",
