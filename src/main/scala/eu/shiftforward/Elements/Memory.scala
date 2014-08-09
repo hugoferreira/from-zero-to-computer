@@ -12,10 +12,8 @@ trait Memory extends Sequential with ControlFlow {
       val loadIn = load.getSignal
       val inputA = in.getSignal
       schedule(ClockedGateDelay) {
-        if (clockIn && loadIn) {
-          state = inputA
-          out <~ state
-        }
+        if (clockIn && loadIn) state = inputA
+        if (clockIn) out <~ state
       }
     }
 

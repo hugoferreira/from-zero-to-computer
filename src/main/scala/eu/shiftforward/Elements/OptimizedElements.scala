@@ -1,6 +1,8 @@
 package eu.shiftforward.Elements
 
-import eu.shiftforward.Wire
+import eu.shiftforward.{Bus, Wire}
+
+import scala.collection.mutable.ArrayBuffer
 
 trait OptimizedControlFlow extends ControlFlow {
   override def mux(a: Wire, b: Wire, s: Wire) = {
@@ -70,4 +72,25 @@ trait OptimizedArithmetic extends Arithmetic {
   }
 }
 
-trait OptimizedElements extends OptimizedControlFlow with OptimizedArithmetic
+trait OptimizedMemory extends Memory {
+  override def ram(data: Bus, address: Bus, load: Wire)(implicit clock: Wire): Bus = {
+    val state = ArrayBuffer.fill(math.pow(2, address.size).toInt)(0)
+
+    val out = new Bus(data.size)
+    def action() {
+      val clockIn = clock.getSignal
+      val loadIn = load.getSignal
+      val inputA = data.toInt
+      schedule(ClockedGateDelay) {
+        if (clockIn && loadIn) state(address.toInt) = inputA
+        if (clockIn) out <~ state(address.toInt)
+      }
+    }
+
+    clock addAction action
+
+    out
+  }
+}
+
+trait OptimizedElements extends OptimizedControlFlow with OptimizedArithmetic with OptimizedMemory

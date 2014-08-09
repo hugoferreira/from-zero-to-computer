@@ -15,8 +15,8 @@ trait Logic extends CircuitSimulation {
   def inverter(input: Wire): Wire = unaryLogicGate(input) { !_ }
   def inverter(input: Bus): Bus = input map inverter
 
-  def buffer(input: Wire): Wire = unaryLogicGate(input) { identity }
-  def buffer(input: Bus): Bus = input map buffer
+  def bridge(input: Wire): Wire = unaryLogicGate(input) { identity }
+  def bridge(input: Bus): Bus = input map bridge
 
   private def binaryLogicGate(a: Wire, b: Wire)(op: (Boolean, Boolean) => Boolean) = {
     val output = new Wire
@@ -49,8 +49,14 @@ trait Logic extends CircuitSimulation {
   def nand(x: Bus, y: Bus): Bus = (x, y).zipped map nand
   def nor(x: Bus, y: Bus): Bus  = (x, y).zipped map nor
 
-  def rotateRight(a: Bus): Bus = buffer(a.drop(1) ++ a.take(1))
-  def rotateLeft(a: Bus): Bus  = buffer(a.takeRight(1) ++ a.dropRight(1))
-  def shiftRight(a: Bus): Bus  = buffer(a.drop(1) :+ Ground)
-  def shiftLeft(a: Bus): Bus   = buffer(Ground +: a.dropRight(1))
+  /* def and(x: Bus, y: Wire): Bus  = x map { w => and(w, y) }
+  def or(x: Bus, y: Wire): Bus   = x map { w => or(w, y) }
+  def xor(x: Bus, y: Wire): Bus  = x map { w => xor(w, y) }
+  def nand(x: Bus, y: Wire): Bus = x map { w => nand(w, y) }
+  def nor(x: Bus, y: Wire): Bus  = x map { w => nor(w, y) } */
+
+  def rotateRight(a: Bus): Bus = bridge(a.drop(1) ++ a.take(1))
+  def rotateLeft(a: Bus): Bus  = bridge(a.takeRight(1) ++ a.dropRight(1))
+  def shiftRight(a: Bus): Bus  = bridge(a.drop(1) :+ Ground)
+  def shiftLeft(a: Bus): Bus   = bridge(Ground +: a.dropRight(1))
 }
