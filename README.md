@@ -1,3 +1,25 @@
+From Zero to Computer: Epilogue
+==============================
+
+**Tl;dr;** This project was superceeded by https://github.com/hugoferreira/from-zero-to-computer-ts
+
+Greetings stranger. So, hmmm... long story short, this project was a failure. Not necessarily because I underestimated the effort required to complete it (which I did), but because I grossly underestimated my knowledge of digital systems and CPU design. 
+
+Notwithstanding, I recently decided to tackle this project... again! Progress has been made, and I now have checked the following items:
+
+ - [x] Designed a logic circuit simulator in ~~Scala~~ Typescript;
+ - [x] Proceeded to implement the fundamentals of electronic systems, such as logic gates, flip-flops, muxes/demuxes, etc;
+ - [x] Design on top of that a computer system, where I'll do my best effort to be ~~non-von-Neumann~~ (bottom line, it's von-Neumann);
+ - [ ] Implement a ~~basic compiler for that computer in Scala~~ assembler that supports macros;
+ - [ ] Proceed to bootstrap that compiler (i.e., make the compiler able to compile itself);
+ - [ ] Implement a basic operating system to run on that computer;
+ - [ ] Implement an application for that OS that acts as a real-time monitor of the code being executed;
+ - [x] Physically build this system;
+ - [ ] ... using 74xxx-era discrete ICs (waiting for eBay);
+ - [ ] ... with VGA output (easy with an FPGA or arduino; not so easy with 74xxx because of the IC count).
+
+If you want to know more, [head over to the new repository](https://github.com/hugoferreira/from-zero-to-computer-ts).
+
 From Zero to Computer: Week #0
 ==============================
 
